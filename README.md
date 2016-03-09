@@ -12,3 +12,10 @@
 
 - The 'config.xml' file is expected to be in the execution directory. See example 'config.xml' for more details.
 - The template for 'config.xml' can be automatically created, when the application does not find one.
+
+## Output ##
+
+- File 'result.xml' in the [map_file_name]_result directory
+    - list of nodes in the path (ordered)
+    - list of edges in the path (ordered)
+    - list of coordinates in the path (ordered)
