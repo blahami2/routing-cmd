@@ -40,6 +40,8 @@ import cz.certicon.routing.model.entity.GraphEntityFactory;
 import cz.certicon.routing.model.entity.Node;
 import cz.certicon.routing.model.entity.Path;
 import cz.certicon.routing.model.entity.neighbourlist.NeighbourListGraphEntityFactory;
+import cz.certicon.routing.presentation.PathPresenter;
+import cz.certicon.routing.presentation.jxmapviewer.JxMapViewerFrame;
 import cz.certicon.routing.utils.GraphUtils;
 import java.util.HashSet;
 import java.util.List;
@@ -124,7 +126,7 @@ public class Route {
         graphFile = new File( inputDir.getAbsolutePath() + File.separator + pbfFile.getName().substring( 0, pbfFile.getName().length() - 4 ) + "_graph.xml" );
         coordFile = new File( inputDir.getAbsolutePath() + File.separator + pbfFile.getName().substring( 0, pbfFile.getName().length() - 4 ) + "_coord.xml" );
 
-        if ( !graphFile.exists() || !coordFile.exists() || true ) { // TODO: remove true
+        if ( !graphFile.exists() || !coordFile.exists() ) {
             if ( !inputDir.exists() ) {
                 inputDir.mkdir();
             }
@@ -183,7 +185,7 @@ public class Route {
         Node destination = entityFactory.createNode( Node.Id.generateId(), config.getDestination().getLatitude(), config.getDestination().getLongitude() );
         System.out.println( "Done loading. Routing..." );
         Path route = routingAlgorithm.route( source, destination );
-        if(route == null){
+        if ( route == null ) {
             System.out.println( "Path between the two nodes has not been found. Exiting." );
             return;
         }
@@ -202,7 +204,11 @@ public class Route {
         resultWriter.open();
         resultWriter.write( route );
         resultWriter.close();
-        System.out.println( "Done exporting. Exiting." );
+        System.out.println( "Done exporting. Displaying map..." );
+        PathPresenter map = new JxMapViewerFrame();
+        map.setDisplayEdgeText( false );
+        map.setDisplayNodeText( false );
+        map.displayPath( route );
     }
 
 }
