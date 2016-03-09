@@ -12,4 +12,3 @@
 
 - The 'config.xml' file is expected to be in the execution directory. See example 'config.xml' for more details.
 - The template for 'config.xml' can be automatically created, when the application does not find one.
-- PBF 
