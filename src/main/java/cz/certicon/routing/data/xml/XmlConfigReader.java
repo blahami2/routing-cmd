@@ -9,32 +9,84 @@ import cz.certicon.routing.model.Config;
 import java.io.IOException;
 import cz.certicon.routing.data.ConfigReader;
 import cz.certicon.routing.data.DataSource;
+import cz.certicon.routing.data.basic.xml.AbstractXmlReader;
+import static cz.certicon.routing.data.xml.Tag.*;
+import cz.certicon.routing.model.basic.ConfigImpl;
+import cz.certicon.routing.model.entity.Coordinate;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
 
 /**
  *
  * @author Michael Blaha {@literal <michael.blaha@certicon.cz>}
  */
-public class XmlConfigReader implements ConfigReader {
-    
-    private final DataSource dataSource;
+public class XmlConfigReader extends AbstractXmlReader implements ConfigReader {
 
-    XmlConfigReader( DataSource dataSource ) {
-        this.dataSource = dataSource;
-    }
-
-    @Override
-    public ConfigReader open() throws IOException {
-        return this;
+    public XmlConfigReader( DataSource dataSource ) {
+        super( dataSource );
     }
 
     @Override
     public Config read() throws IOException {
-        throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+        try {
+            SAXParserFactory factory = SAXParserFactory.newInstance();
+            SAXParser saxParser = factory.newSAXParser();
+            Handler handler = new Handler();
+            saxParser.parse( getDataSource().getInputStream(), handler );
+            return handler.getConfig();
+        } catch ( ParserConfigurationException | SAXException ex ) {
+            throw new IOException( ex );
+        }
     }
 
-    @Override
-    public ConfigReader close() throws IOException {
-        throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
-    }
+    private static class Handler extends DefaultHandler {
 
+        private String pbfPath;
+        private double aLatitude;
+        private double aLongitude;
+        private double bLatitude;
+        private double bLongitude;
+        private boolean isParsingPath = false;
+        private StringBuilder pathBuilder;
+
+        public Handler() {
+        }
+
+        @Override
+        public void startElement( String uri, String localName, String qName, Attributes attributes ) throws SAXException {
+            if ( qName.equalsIgnoreCase( FROM.name() ) ) {
+                aLatitude = Double.parseDouble( attributes.getValue( LATITUDE.name().toLowerCase() ) );
+                aLongitude = Double.parseDouble( attributes.getValue( LONGITUDE.name().toLowerCase() ) );
+            } else if ( qName.equalsIgnoreCase( TO.name() ) ) {
+                bLatitude = Double.parseDouble( attributes.getValue( LATITUDE.name().toLowerCase() ) );
+                bLongitude = Double.parseDouble( attributes.getValue( LONGITUDE.name().toLowerCase() ) );
+            } else if ( qName.equalsIgnoreCase( PBF.name() ) ) {
+                isParsingPath = true;
+                pathBuilder = new StringBuilder();
+            }
+        }
+
+        @Override
+        public void characters( char[] chars, int i, int i1 ) throws SAXException {
+            if ( isParsingPath ) {
+                pathBuilder.append( new String( chars, i, i1 ) );
+            }
+        }
+
+        @Override
+        public void endElement( String uri, String localName, String qName ) throws SAXException {
+            if ( qName.equalsIgnoreCase( PBF.name() ) ) {
+                isParsingPath = false;
+                pbfPath = pathBuilder.toString();
+            }
+        }
+
+        public Config getConfig() {
+            return new ConfigImpl( pbfPath, new Coordinate( aLatitude, aLongitude ), new Coordinate( bLatitude, bLongitude ) );
+        }
+    }
 }

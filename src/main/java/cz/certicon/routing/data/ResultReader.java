@@ -3,19 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package cz.certicon.routing.model;
-
-import cz.certicon.routing.model.entity.Coordinate;
+package cz.certicon.routing.data;
 
 /**
  *
  * @author Michael Blaha {@literal <michael.blaha@certicon.cz>}
  */
-public interface Config {
-
-    public String getPbfPath();
-
-    public Coordinate getSource();
-
-    public Coordinate getDestination();
+public interface ResultReader extends Reader {
+    
 }

@@ -3,19 +3,16 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package cz.certicon.routing.model;
+package cz.certicon.routing.data;
 
-import cz.certicon.routing.model.entity.Coordinate;
+import cz.certicon.routing.model.entity.Path;
+import java.io.IOException;
 
 /**
  *
  * @author Michael Blaha {@literal <michael.blaha@certicon.cz>}
  */
-public interface Config {
+public interface ResultWriter extends Writer {
 
-    public String getPbfPath();
-
-    public Coordinate getSource();
-
-    public Coordinate getDestination();
+    public void write( Path path ) throws IOException;
 }

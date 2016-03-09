@@ -12,10 +12,8 @@ import java.io.IOException;
  *
  * @author Michael Blaha {@literal <michael.blaha@certicon.cz>}
  */
-public interface ConfigWriter {
+public interface ConfigWriter extends Writer {
     
-    public ConfigWriter open() throws IOException;
-    public ConfigWriter write(Config config) throws IOException;
-    public ConfigWriter close() throws IOException;
+    public void write(Config config) throws IOException;
     
 }

@@ -12,8 +12,6 @@ import java.io.IOException;
  *
  * @author Michael Blaha {@literal <michael.blaha@certicon.cz>}
  */
-public interface ConfigReader {
-    public ConfigReader open() throws IOException;
+public interface ConfigReader extends Reader {
     public Config read() throws IOException;
-    public ConfigReader close() throws IOException;
 }

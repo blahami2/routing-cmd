@@ -10,5 +10,5 @@ package cz.certicon.routing.data.xml;
  * @author Michael Blaha {@literal <michael.blaha@certicon.cz>}
  */
 public enum Tag {
-    PBF, FROM, TO, LATITUDE, LONGITUDE;
+    ROOT, PBF, FROM, TO, LATITUDE, LONGITUDE;
 }

@@ -7,34 +7,40 @@ package cz.certicon.routing.data.xml;
 
 import cz.certicon.routing.data.ConfigWriter;
 import cz.certicon.routing.data.DataDestination;
+import cz.certicon.routing.data.basic.xml.AbstractXmlWriter;
 import cz.certicon.routing.model.Config;
 import java.io.IOException;
+import static cz.certicon.routing.data.xml.Tag.*;
+import javax.xml.stream.XMLStreamException;
 
 /**
  *
  * @author Michael Blaha {@literal <michael.blaha@certicon.cz>}
  */
-public class XmlConfigWriter implements ConfigWriter {
-    
-    private final DataDestination dataDestination;
+public class XmlConfigWriter extends AbstractXmlWriter implements ConfigWriter {
 
     XmlConfigWriter( DataDestination dataDestination ) {
-        this.dataDestination = dataDestination;
+        super(dataDestination);
     }
 
     @Override
-    public ConfigWriter open() throws IOException {
-        throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
+    public void write( Config config ) throws IOException {
+        try {
+            getWriter().writeStartElement( PBF.name().toLowerCase() );
+            getWriter().writeCharacters( config.getPbfPath() );
+            getWriter().writeEndElement();
+            getWriter().writeStartElement( FROM.name().toLowerCase() );
+            getWriter().writeAttribute( LATITUDE.name().toLowerCase(), Double.toString( config.getSource().getLatitude() ) );
+            getWriter().writeAttribute( LONGITUDE.name().toLowerCase(), Double.toString( config.getSource().getLongitude() ) );
+            getWriter().writeEndElement();
+            getWriter().writeStartElement( TO.name().toLowerCase() );
+            getWriter().writeAttribute( LATITUDE.name().toLowerCase(), Double.toString( config.getDestination().getLatitude() ) );
+            getWriter().writeAttribute( LONGITUDE.name().toLowerCase(), Double.toString( config.getDestination().getLongitude() ) );
+            getWriter().writeEndElement();
+            getWriter().flush();
+        } catch ( XMLStreamException ex ) {
+            throw new IOException( ex );
+        }
     }
 
-    @Override
-    public ConfigWriter write( Config config ) throws IOException {
-        throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public ConfigWriter close() throws IOException {
-        throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
-    }
-    
 }
