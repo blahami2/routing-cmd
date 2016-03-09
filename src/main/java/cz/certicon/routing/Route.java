@@ -80,7 +80,7 @@ public class Route {
         File configFile = new File( configFilePath );
         if ( !configFile.exists() ) {
             System.out.println( "File does not exist: '" + configFile.getAbsolutePath() + "'" );
-            System.out.println( "Create template at the given location? (yes/no)" );
+            System.out.print( "Create template at the given location? (yes/no): " );
             Scanner sc = new Scanner( System.in );
             while ( true ) {
                 String next = sc.next();
@@ -90,19 +90,23 @@ public class Route {
                             new Coordinate( 1.2345, 1.2345 ),
                             new Coordinate( 1.2345, 1.2345 ) );
                     ConfigWriter configWriter = configIoFactory.createConfigWriter( new FileDestination( configFile ) );
+                    configWriter.open();
                     configWriter.write( cfg );
+                    configWriter.close();
                     System.out.println( "Template has been created at: '" + configFile.getAbsolutePath() + "'. Exiting." );
                     return;
                 } else if ( next.equalsIgnoreCase( "n" ) || next.equalsIgnoreCase( "no" ) ) {
                     System.out.println( "Exiting." );
                     return;
                 } else {
-                    System.out.println( "Incorrect input: '" + next + "'. Type 'yes' or 'no'" );
+                    System.out.print( "Incorrect input: '" + next + "'. Type 'yes' or 'no': " );
                 }
             }
         }
         ConfigReader configReader = configIoFactory.createConfigReader( new FileSource( configFile ) );
+        configReader.open();
         config = configReader.read();
+        configReader.close();
         pbfFile = new File( config.getPbfPath() );
         if ( !config.getPbfPath().endsWith( ".pbf" ) ) {
             System.out.println( "PBF file must have suffix '.pbf'. Exiting." );
@@ -120,7 +124,7 @@ public class Route {
         graphFile = new File( inputDir.getAbsolutePath() + File.separator + pbfFile.getName().substring( 0, pbfFile.getName().length() - 4 ) + "_graph.xml" );
         coordFile = new File( inputDir.getAbsolutePath() + File.separator + pbfFile.getName().substring( 0, pbfFile.getName().length() - 4 ) + "_coord.xml" );
 
-        if ( !graphFile.exists() || !coordFile.exists() ) {
+        if ( !graphFile.exists() || !coordFile.exists() || true ) { // TODO: remove true
             if ( !inputDir.exists() ) {
                 inputDir.mkdir();
             }
@@ -156,7 +160,7 @@ public class Route {
                         edge.setCoordinates( null );
                     }
                     coordWriter.close();
-                    System.out.print( "Done generating." );
+                    System.out.print( "Done generating. " );
                     onFilesAvailable();
                 } catch ( IOException ex ) {
                     System.err.println( ex );
@@ -171,12 +175,18 @@ public class Route {
         System.out.println( "Loading graph..." );
         GraphReader graphReader = graphIoFactory.createGraphReader( new FileSource( graphFile ) );
         CoordinateReader coordReader = coordFactory.createReader( new FileSource( coordFile ) );
+        graphReader.open();
         Graph graph = graphReader.load( entityFactory, distanceFactory );
+        graphReader.close();
         RoutingAlgorithm routingAlgorithm = new DijkstraRoutingAlgorithm( graph, entityFactory, distanceFactory );
         Node source = entityFactory.createNode( Node.Id.generateId(), config.getSource().getLatitude(), config.getSource().getLongitude() );
         Node destination = entityFactory.createNode( Node.Id.generateId(), config.getDestination().getLatitude(), config.getDestination().getLongitude() );
         System.out.println( "Done loading. Routing..." );
         Path route = routingAlgorithm.route( source, destination );
+        if(route == null){
+            System.out.println( "Path between the two nodes has not been found. Exiting." );
+            return;
+        }
         System.out.println( "Done routing. Exporting results..." );
         outputDir = new File( inputDir.getAbsolutePath() + "_output" );
         if ( !outputDir.exists() ) {
@@ -185,9 +195,13 @@ public class Route {
         ResultIoFactory resultIoFactory = new XmlResultIoFactory();
         File resultFile = new File( outputDir.getAbsolutePath() + File.separator + "result.xml" );
         ResultWriter resultWriter = resultIoFactory.createResultWriter( new FileDestination( resultFile ) );
+        coordReader.open();
         Map<Edge, List<Coordinate>> coordinates = coordReader.findCoordinates( new HashSet<>( route.getEdges() ) );
+        coordReader.close();
         GraphUtils.fillWithCoordinates( route.getEdges(), coordinates );
+        resultWriter.open();
         resultWriter.write( route );
+        resultWriter.close();
         System.out.println( "Done exporting. Exiting." );
     }
 
