@@ -10,7 +10,7 @@ import cz.certicon.routing.data.DataDestination;
 import cz.certicon.routing.data.basic.xml.AbstractXmlWriter;
 import cz.certicon.routing.model.Config;
 import java.io.IOException;
-import static cz.certicon.routing.data.xml.Tag.*;
+import static cz.certicon.routing.data.xml.ConfigTag.*;
 import javax.xml.stream.XMLStreamException;
 
 /**

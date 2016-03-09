@@ -10,7 +10,7 @@ import java.io.IOException;
 import cz.certicon.routing.data.ConfigReader;
 import cz.certicon.routing.data.DataSource;
 import cz.certicon.routing.data.basic.xml.AbstractXmlReader;
-import static cz.certicon.routing.data.xml.Tag.*;
+import static cz.certicon.routing.data.xml.ConfigTag.*;
 import cz.certicon.routing.model.basic.ConfigImpl;
 import cz.certicon.routing.model.entity.Coordinate;
 import javax.xml.parsers.ParserConfigurationException;
