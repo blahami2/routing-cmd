@@ -3,11 +3,17 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package cz.certicon.routing.data;
+package cz.certicon.routing.model;
 
 /**
  *
  * @author Michael Blaha {@literal <michael.blaha@certicon.cz>}
  */
-public interface ConfigIoFactory extends IoFactory<ConfigReader, ConfigWriter> {
+public interface RouteStats {
+
+    public long getLength();
+
+    public long getTime();
+
+    public double getPrice();
 }

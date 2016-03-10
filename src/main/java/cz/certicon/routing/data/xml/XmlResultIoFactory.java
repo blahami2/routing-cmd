@@ -18,12 +18,12 @@ import cz.certicon.routing.data.ResultWriter;
 public class XmlResultIoFactory implements ResultIoFactory {
 
     @Override
-    public ResultWriter createResultWriter( DataDestination dataDestination ) {
+    public ResultWriter createWriter( DataDestination dataDestination ) {
         return new XmlResultWriter( dataDestination );
     }
 
     @Override
-    public ResultReader createResultReader( DataSource dataSource ) {
+    public ResultReader createReader( DataSource dataSource ) {
         throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
     }
 

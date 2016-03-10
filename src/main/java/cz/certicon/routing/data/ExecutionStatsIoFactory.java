@@ -9,5 +9,6 @@ package cz.certicon.routing.data;
  *
  * @author Michael Blaha {@literal <michael.blaha@certicon.cz>}
  */
-public interface ConfigIoFactory extends IoFactory<ConfigReader, ConfigWriter> {
+public interface ExecutionStatsIoFactory extends IoFactory<ExecutionStatsReader, ExecutionStatsWriter> {
+
 }

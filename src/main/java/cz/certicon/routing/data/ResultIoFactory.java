@@ -9,9 +9,5 @@ package cz.certicon.routing.data;
  *
  * @author Michael Blaha {@literal <michael.blaha@certicon.cz>}
  */
-public interface ResultIoFactory {
-
-    public ResultWriter createResultWriter( DataDestination dataDestination );
-
-    public ResultReader createResultReader( DataSource dataSource );
+public interface ResultIoFactory extends IoFactory<ResultReader, ResultWriter> {
 }

@@ -5,9 +5,12 @@
  */
 package cz.certicon.routing.data;
 
+import cz.certicon.routing.model.ExecutionStats;
+
 /**
  *
  * @author Michael Blaha {@literal <michael.blaha@certicon.cz>}
  */
-public interface ConfigIoFactory extends IoFactory<ConfigReader, ConfigWriter> {
+public interface ExecutionStatsReader extends Reader<Void,ExecutionStats> {
+    
 }

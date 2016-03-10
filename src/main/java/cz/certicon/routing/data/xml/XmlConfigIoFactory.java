@@ -18,12 +18,12 @@ import cz.certicon.routing.data.DataSource;
 public class XmlConfigIoFactory implements ConfigIoFactory {
 
     @Override
-    public ConfigReader createConfigReader( DataSource dataSource ) {
+    public ConfigReader createReader( DataSource dataSource ) {
         return new XmlConfigReader( dataSource );
     }
 
     @Override
-    public ConfigWriter createConfigWriter( DataDestination dataDestination ) {
+    public ConfigWriter createWriter( DataDestination dataDestination ) {
         return new XmlConfigWriter( dataDestination );
     }
 
