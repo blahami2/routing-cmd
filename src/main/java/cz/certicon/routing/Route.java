@@ -145,7 +145,7 @@ public class Route {
             while ( true ) {
                 String next = sc.next();
                 if ( next.equalsIgnoreCase( "y" ) || next.equalsIgnoreCase( "yes" ) ) {
-                    RouteStats routeStats = new RouteStatsImpl( 0, 0, 0 );
+                    RouteStats routeStats = new RouteStatsImpl( 1, 1, 0 );
                     RouteStatsWriter routeStatsWriter = routeStatsIoFactory.createWriter( new FileDestination( refRouteStatsFile ) );
                     routeStatsWriter.write( routeStats );
                     System.out.println( "Template has been created at: '" + refRouteStatsFile.getAbsolutePath() + "'. Exiting." );
