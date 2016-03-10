@@ -19,7 +19,7 @@ import javax.xml.stream.XMLStreamException;
  */
 public class XmlExecutionStatsWriter extends AbstractXmlWriter<ExecutionStats> implements ExecutionStatsWriter {
 
-    public XmlExecutionStatsWriter( DataDestination destination ) {
+    XmlExecutionStatsWriter( DataDestination destination ) {
         super( destination );
     }
 

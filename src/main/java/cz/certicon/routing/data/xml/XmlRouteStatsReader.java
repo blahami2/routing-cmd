@@ -25,7 +25,7 @@ import cz.certicon.routing.model.basic.RouteStatsImpl;
  */
 public class XmlRouteStatsReader extends AbstractXmlReader<Void, RouteStats> implements RouteStatsReader {
 
-    public XmlRouteStatsReader( DataSource source ) {
+    XmlRouteStatsReader( DataSource source ) {
         super( source );
     }
 

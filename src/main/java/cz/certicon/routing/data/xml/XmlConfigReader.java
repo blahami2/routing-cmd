@@ -26,7 +26,7 @@ import static cz.certicon.routing.data.xml.ConfigTag.*;
  */
 public class XmlConfigReader extends AbstractXmlReader<Void, Config> implements ConfigReader {
 
-    public XmlConfigReader( DataSource dataSource ) {
+    XmlConfigReader( DataSource dataSource ) {
         super( dataSource );
     }
 

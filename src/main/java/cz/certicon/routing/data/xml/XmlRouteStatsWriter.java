@@ -19,7 +19,7 @@ import static cz.certicon.routing.data.xml.RouteStatsTag.*;
  */
 public class XmlRouteStatsWriter extends AbstractXmlWriter<RouteStats> implements RouteStatsWriter {
 
-    public XmlRouteStatsWriter( DataDestination destination ) {
+    XmlRouteStatsWriter( DataDestination destination ) {
         super( destination );
     }
 
@@ -33,7 +33,7 @@ public class XmlRouteStatsWriter extends AbstractXmlWriter<RouteStats> implement
             getWriter().writeCharacters( Long.toString( routeStats.getTime() ) );
             getWriter().writeEndElement();
             getWriter().writeStartElement( PRICE.name().toLowerCase() );
-            getWriter().writeCharacters( Double.toString( routeStats.getPrice()) );
+            getWriter().writeCharacters( Double.toString( routeStats.getPrice() ) );
             getWriter().writeEndElement();
             getWriter().flush();
         } catch ( XMLStreamException ex ) {
