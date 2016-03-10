@@ -19,3 +19,11 @@
     - list of nodes in the path (ordered)
     - list of edges in the path (ordered)
     - list of coordinates in the path (ordered)
+
+## Versions ##
+
+### 1.1 ###
+- Added new content to the config file: path to the reference route statistics
+- Provided statistics are compared to the result
+- The data are exported into the output directory
+- Please, update your config file or let the application generate a new one as well as a template for the reference config file
