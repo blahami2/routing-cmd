@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import cz.certicon.routing.data.ConfigReader;
 import cz.certicon.routing.data.ConfigWriter;
+import cz.certicon.routing.data.DataSource;
 import cz.certicon.routing.data.ExecutionStatsWriter;
 import cz.certicon.routing.data.MapDataSource;
 import cz.certicon.routing.data.Restriction;
@@ -52,7 +53,9 @@ import cz.certicon.routing.model.entity.neighbourlist.NeighbourListGraphEntityFa
 import cz.certicon.routing.presentation.PathPresenter;
 import cz.certicon.routing.presentation.jxmapviewer.JxMapViewerFrame;
 import cz.certicon.routing.utils.GraphUtils;
+import cz.certicon.routing.utils.RouteStatsComparator;
 import cz.certicon.routing.utils.measuring.TimeMeasurement;
+import java.io.InputStream;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -81,12 +84,14 @@ public class Route {
     private final CoordinateSupplyFactory coordFactory = new XmlCoordinateSupplyFactory();
     private final GraphEntityFactory entityFactory = new NeighbourListGraphEntityFactory();
     private final DistanceFactory distanceFactory = new LengthDistanceFactory();
+    private final RouteStatsIoFactory routeStatsIoFactory = new XmlRouteStatsIoFactory();
     private File pbfFile;
     private File inputDir;
     private File outputDir;
     private File graphFile;
     private File coordFile;
     private File configFile;
+    private File refRouteStatsFile;
     private Config config;
 
     public void run( String configFilePath ) throws IOException {
@@ -104,7 +109,8 @@ public class Route {
                 String next = sc.next();
                 if ( next.equalsIgnoreCase( "y" ) || next.equalsIgnoreCase( "yes" ) ) {
                     Config cfg = new ConfigImpl(
-                            "insert/path/here",
+                            "insert/pbf/path/here",
+                            "insert/reference_route_stats/path/here",
                             new Coordinate( 1.2345, 1.2345 ),
                             new Coordinate( 1.2345, 1.2345 ) );
                     ConfigWriter configWriter = configIoFactory.createWriter( new FileDestination( configFile ) );
@@ -122,9 +128,38 @@ public class Route {
             }
         }
         ConfigReader configReader = configIoFactory.createReader( new FileSource( configFile ) );
-        configReader.open();
         config = configReader.read( null );
-        configReader.close();
+        if(config.getReferenceRouteStatsPath() == null){
+            System.out.println( "Update your config file with reference route statistics (or let the application create a new tempalte for you). Exiting." );
+            return;
+        }
+        refRouteStatsFile = new File( config.getReferenceRouteStatsPath() );
+        if ( !refRouteStatsFile.getAbsolutePath().endsWith( ".xml" ) ) {
+            System.out.println( "Reference file with route statistics must have suffix '.xml'. Exiting." );
+            return;
+        }
+        if ( !refRouteStatsFile.exists() ) {
+            System.out.println( "Reference file with route statistics does not exist: '" + refRouteStatsFile.getAbsolutePath() + "'" );
+            System.out.print( "Create template at the given location? (yes/no): " );
+            Scanner sc = new Scanner( System.in );
+            while ( true ) {
+                String next = sc.next();
+                if ( next.equalsIgnoreCase( "y" ) || next.equalsIgnoreCase( "yes" ) ) {
+                    RouteStats routeStats = new RouteStatsImpl( 0, 0, 0 );
+                    RouteStatsWriter routeStatsWriter = routeStatsIoFactory.createWriter( new FileDestination( refRouteStatsFile ) );
+                    routeStatsWriter.write( routeStats );
+                    System.out.println( "Template has been created at: '" + refRouteStatsFile.getAbsolutePath() + "'. Exiting." );
+                    return;
+                } else if ( next.equalsIgnoreCase( "n" ) || next.equalsIgnoreCase( "no" ) ) {
+                    System.out.println( "Exiting." );
+                    return;
+                } else {
+                    System.out.print( "Incorrect input: '" + next + "'. Type 'yes' or 'no': " );
+                }
+            }
+        } else {
+            refRouteStatsFile = refRouteStatsFile.getAbsoluteFile();
+        }
         pbfFile = new File( config.getPbfPath() ).getAbsoluteFile();
         if ( !config.getPbfPath().endsWith( ".pbf" ) ) {
             System.out.println( "PBF file must have suffix '.pbf'. Exiting." );
@@ -221,11 +256,13 @@ public class Route {
         GraphUtils.fillWithCoordinates( route.getEdges(), coordinates );
         resultWriter.write( route );
         File routeStatsFile = new File( outputDir.getAbsolutePath() + File.separator + "route_statistics.xml" );
-        RouteStatsWriter routeStatsWriter = new XmlRouteStatsIoFactory().createWriter( new FileDestination( routeStatsFile ) );
-        routeStatsWriter.write( new RouteStatsImpl( (long) route.getLength(), (long) route.getTime(), 0 ) );
+        RouteStatsWriter routeStatsWriter = routeStatsIoFactory.createWriter( new FileDestination( routeStatsFile ) );
+        RouteStats actualRouteStats = new RouteStatsImpl( (long) route.getLength(), (long) route.getTime(), 0 );
+        routeStatsWriter.write( actualRouteStats );
         File executionStatsFile = new File( outputDir.getAbsolutePath() + File.separator + "execution_statistics.xml" );
         ExecutionStatsWriter executionStatsWriter = new XmlExecutionStatsIoFactory().createWriter( new FileDestination( executionStatsFile ) );
-        executionStatsWriter.write( new ExecutionStatsImpl( timeMeasurement.getTimeElapsed(), 0, 0 ) );
+        double accuracy = RouteStatsComparator.calculateAccuracy( routeStatsIoFactory.createReader( new FileSource( refRouteStatsFile ) ).read( null ), actualRouteStats );
+        executionStatsWriter.write( new ExecutionStatsImpl( timeMeasurement.getTimeElapsed(), 0, accuracy ) );
         System.out.println( "Done exporting. Displaying map..." );
         PathPresenter map = new JxMapViewerFrame();
         map.setDisplayEdgeText( false );

@@ -15,11 +15,13 @@ import cz.certicon.routing.model.entity.Coordinate;
 public class ConfigImpl implements Config {
 
     private final String pbfPath;
+    private final String referenceRouteStatsPath;
     private final Coordinate source;
     private final Coordinate destination;
 
-    public ConfigImpl( String pbfPath, Coordinate source, Coordinate destination ) {
+    public ConfigImpl( String pbfPath, String referenceRouteStatsPath, Coordinate source, Coordinate destination ) {
         this.pbfPath = pbfPath;
+        this.referenceRouteStatsPath = referenceRouteStatsPath;
         this.source = source;
         this.destination = destination;
     }
@@ -37,6 +39,11 @@ public class ConfigImpl implements Config {
     @Override
     public Coordinate getDestination() {
         return destination;
+    }
+
+    @Override
+    public String getReferenceRouteStatsPath() {
+        return referenceRouteStatsPath;
     }
 
 }

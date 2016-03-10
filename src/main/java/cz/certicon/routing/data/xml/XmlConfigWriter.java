@@ -29,6 +29,9 @@ public class XmlConfigWriter extends AbstractXmlWriter<Config> implements Config
             getWriter().writeStartElement( PBF.name().toLowerCase() );
             getWriter().writeCharacters( config.getPbfPath() );
             getWriter().writeEndElement();
+            getWriter().writeStartElement( ROUTE_STATS.name().toLowerCase() );
+            getWriter().writeCharacters( config.getReferenceRouteStatsPath());
+            getWriter().writeEndElement();
             getWriter().writeStartElement( FROM.name().toLowerCase() );
             getWriter().writeAttribute( LATITUDE.name().toLowerCase(), Double.toString( config.getSource().getLatitude() ) );
             getWriter().writeAttribute( LONGITUDE.name().toLowerCase(), Double.toString( config.getSource().getLongitude() ) );

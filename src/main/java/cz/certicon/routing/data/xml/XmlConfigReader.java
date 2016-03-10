@@ -49,6 +49,7 @@ public class XmlConfigReader extends AbstractXmlReader<Void, Config> implements 
     private static class Handler extends DefaultHandler {
 
         private String pbfPath;
+        private String routeStatsPath;
         private double aLatitude;
         private double aLongitude;
         private double bLatitude;
@@ -70,6 +71,9 @@ public class XmlConfigReader extends AbstractXmlReader<Void, Config> implements 
             } else if ( qName.equalsIgnoreCase( PBF.name() ) ) {
                 isParsingPath = true;
                 pathBuilder = new StringBuilder();
+            } else if ( qName.equalsIgnoreCase( ROUTE_STATS.name() ) ) {
+                isParsingPath = true;
+                pathBuilder = new StringBuilder();
             }
         }
 
@@ -85,11 +89,14 @@ public class XmlConfigReader extends AbstractXmlReader<Void, Config> implements 
             if ( qName.equalsIgnoreCase( PBF.name() ) ) {
                 isParsingPath = false;
                 pbfPath = pathBuilder.toString();
+            } else if ( qName.equalsIgnoreCase( ROUTE_STATS.name() ) ) {
+                isParsingPath = false;
+                routeStatsPath = pathBuilder.toString();
             }
         }
 
         public Config getConfig() {
-            return new ConfigImpl( pbfPath, new Coordinate( aLatitude, aLongitude ), new Coordinate( bLatitude, bLongitude ) );
+            return new ConfigImpl( pbfPath, routeStatsPath, new Coordinate( aLatitude, aLongitude ), new Coordinate( bLatitude, bLongitude ) );
         }
     }
 }

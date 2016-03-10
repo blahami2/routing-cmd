@@ -11,6 +11,10 @@ package cz.certicon.routing.model;
  */
 public interface ExecutionStats {
 
+    /**
+     * Execution time
+     * @return time in milliseconds
+     */
     public long getTime();
 
     public long getMemory();

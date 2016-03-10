@@ -15,6 +15,8 @@ public interface Config {
 
     public String getPbfPath();
 
+    public String getReferenceRouteStatsPath();
+    
     public Coordinate getSource();
 
     public Coordinate getDestination();
