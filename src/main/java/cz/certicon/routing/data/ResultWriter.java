@@ -6,13 +6,10 @@
 package cz.certicon.routing.data;
 
 import cz.certicon.routing.model.entity.Path;
-import java.io.IOException;
 
 /**
  *
  * @author Michael Blaha {@literal <michael.blaha@certicon.cz>}
  */
-public interface ResultWriter extends Writer {
-
-    public void write( Path path ) throws IOException;
+public interface ResultWriter extends Writer<Path> {
 }

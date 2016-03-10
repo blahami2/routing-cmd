@@ -17,14 +17,14 @@ import javax.xml.stream.XMLStreamException;
  *
  * @author Michael Blaha {@literal <michael.blaha@certicon.cz>}
  */
-public class XmlConfigWriter extends AbstractXmlWriter implements ConfigWriter {
+public class XmlConfigWriter extends AbstractXmlWriter<Config> implements ConfigWriter {
 
     XmlConfigWriter( DataDestination dataDestination ) {
-        super(dataDestination);
+        super( dataDestination );
     }
 
     @Override
-    public void write( Config config ) throws IOException {
+    protected void openedWrite( Config config ) throws IOException {
         try {
             getWriter().writeStartElement( PBF.name().toLowerCase() );
             getWriter().writeCharacters( config.getPbfPath() );
@@ -41,6 +41,7 @@ public class XmlConfigWriter extends AbstractXmlWriter implements ConfigWriter {
         } catch ( XMLStreamException ex ) {
             throw new IOException( ex );
         }
+        close();
     }
 
 }

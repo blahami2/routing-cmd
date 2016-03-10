@@ -10,7 +10,6 @@ import java.io.IOException;
 import cz.certicon.routing.data.ConfigReader;
 import cz.certicon.routing.data.DataSource;
 import cz.certicon.routing.data.basic.xml.AbstractXmlReader;
-import static cz.certicon.routing.data.xml.ConfigTag.*;
 import cz.certicon.routing.model.basic.ConfigImpl;
 import cz.certicon.routing.model.entity.Coordinate;
 import javax.xml.parsers.ParserConfigurationException;
@@ -19,28 +18,32 @@ import javax.xml.parsers.SAXParserFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
+import static cz.certicon.routing.data.xml.ConfigTag.*;
 
 /**
  *
  * @author Michael Blaha {@literal <michael.blaha@certicon.cz>}
  */
-public class XmlConfigReader extends AbstractXmlReader implements ConfigReader {
+public class XmlConfigReader extends AbstractXmlReader<Void, Config> implements ConfigReader {
 
     public XmlConfigReader( DataSource dataSource ) {
         super( dataSource );
     }
 
     @Override
-    public Config read() throws IOException {
+    protected Config openedRead( Void in ) throws IOException {
+        Config result;
         try {
             SAXParserFactory factory = SAXParserFactory.newInstance();
             SAXParser saxParser = factory.newSAXParser();
             Handler handler = new Handler();
             saxParser.parse( getDataSource().getInputStream(), handler );
-            return handler.getConfig();
+            result = handler.getConfig();
         } catch ( ParserConfigurationException | SAXException ex ) {
             throw new IOException( ex );
         }
+        close();
+        return result;
     }
 
     private static class Handler extends DefaultHandler {

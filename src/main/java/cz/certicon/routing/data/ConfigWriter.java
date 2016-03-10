@@ -6,14 +6,11 @@
 package cz.certicon.routing.data;
 
 import cz.certicon.routing.model.Config;
-import java.io.IOException;
 
 /**
  *
  * @author Michael Blaha {@literal <michael.blaha@certicon.cz>}
  */
-public interface ConfigWriter extends Writer {
-    
-    public void write(Config config) throws IOException;
-    
+public interface ConfigWriter extends Writer<Config> {
+
 }

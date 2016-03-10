@@ -33,6 +33,7 @@ import cz.certicon.routing.data.osm.OsmPbfDataSource;
 import cz.certicon.routing.data.xml.XmlConfigIoFactory;
 import cz.certicon.routing.data.xml.XmlResultIoFactory;
 import cz.certicon.routing.model.basic.ConfigImpl;
+import cz.certicon.routing.model.basic.Pair;
 import cz.certicon.routing.model.entity.Coordinate;
 import cz.certicon.routing.model.entity.Edge;
 import cz.certicon.routing.model.entity.Graph;
@@ -107,7 +108,7 @@ public class Route {
         }
         ConfigReader configReader = configIoFactory.createConfigReader( new FileSource( configFile ) );
         configReader.open();
-        config = configReader.read();
+        config = configReader.read( null );
         configReader.close();
         pbfFile = new File( config.getPbfPath() );
         if ( !config.getPbfPath().endsWith( ".pbf" ) ) {
@@ -158,7 +159,7 @@ public class Route {
                     graphWriter.close();
                     coordWriter.open();
                     for ( Edge edge : graph.getEdges() ) {
-                        coordWriter.write( edge, edge.getCoordinates() );
+                        coordWriter.write( new Pair<>( edge, edge.getCoordinates() ) );
                         edge.setCoordinates( null );
                     }
                     coordWriter.close();
@@ -178,7 +179,7 @@ public class Route {
         GraphReader graphReader = graphIoFactory.createGraphReader( new FileSource( graphFile ) );
         CoordinateReader coordReader = coordFactory.createReader( new FileSource( coordFile ) );
         graphReader.open();
-        Graph graph = graphReader.load( entityFactory, distanceFactory );
+        Graph graph = graphReader.read( new Pair<>( entityFactory, distanceFactory ) );
         graphReader.close();
         RoutingAlgorithm routingAlgorithm = new DijkstraRoutingAlgorithm( graph, entityFactory, distanceFactory );
         Node source = entityFactory.createNode( Node.Id.generateId(), config.getSource().getLatitude(), config.getSource().getLongitude() );
@@ -198,7 +199,7 @@ public class Route {
         File resultFile = new File( outputDir.getAbsolutePath() + File.separator + "result.xml" );
         ResultWriter resultWriter = resultIoFactory.createResultWriter( new FileDestination( resultFile ) );
         coordReader.open();
-        Map<Edge, List<Coordinate>> coordinates = coordReader.findCoordinates( new HashSet<>( route.getEdges() ) );
+        Map<Edge, List<Coordinate>> coordinates = coordReader.read( new HashSet<>( route.getEdges() ) );
         coordReader.close();
         GraphUtils.fillWithCoordinates( route.getEdges(), coordinates );
         resultWriter.open();

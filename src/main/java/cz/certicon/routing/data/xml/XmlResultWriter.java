@@ -22,17 +22,25 @@ import static cz.certicon.routing.data.xml.ResultTag.*;
  *
  * @author Michael Blaha {@literal <michael.blaha@certicon.cz>}
  */
-public class XmlResultWriter extends AbstractXmlWriter implements ResultWriter {
+public class XmlResultWriter extends AbstractXmlWriter<Path> implements ResultWriter {
 
     public XmlResultWriter( DataDestination destination ) {
         super( destination );
     }
 
+    private void writeCoordinate( Coordinate coordinate ) throws XMLStreamException {
+        getWriter().writeStartElement( COORDINATE.name().toLowerCase() );
+        getWriter().writeAttribute( LATITUDE.name().toLowerCase(), Double.toString( coordinate.getLatitude() ) );
+        getWriter().writeAttribute( LONGITUDE.name().toLowerCase(), Double.toString( coordinate.getLongitude() ) );
+        getWriter().writeEndElement();
+    }
+
     @Override
-    public void write( Path path ) throws IOException {
+    protected void openedWrite( Path path ) throws IOException {
         try {
             List<Node> sortedNodes = path.getNodes();
             Collections.sort( sortedNodes, ( Node o1, Node o2 ) -> o1.getId().compareTo( o2.getId() ) );
+            getWriter().writeStartElement( NODES.name().toLowerCase() );
             for ( Node node : sortedNodes ) {
                 getWriter().writeStartElement( NODE.name().toLowerCase() );
                 getWriter().writeAttribute( ID.name().toLowerCase(), Node.Id.toString( node.getId() ) );
@@ -40,8 +48,10 @@ public class XmlResultWriter extends AbstractXmlWriter implements ResultWriter {
                 getWriter().writeAttribute( LONGITUDE.name().toLowerCase(), Double.toString( node.getCoordinates().getLongitude() ) );
                 getWriter().writeEndElement();
             }
+            getWriter().writeEndElement();
             List<Edge> sortedEdges = path.getEdges();
             Collections.sort( sortedEdges, ( Edge o1, Edge o2 ) -> o1.getId().compareTo( o2.getId() ) );
+            getWriter().writeStartElement( EDGES.name().toLowerCase() );
             for ( Edge edge : sortedEdges ) {
                 getWriter().writeStartElement( EDGE.name().toLowerCase() );
                 getWriter().writeAttribute( ID.name().toLowerCase(), Edge.Id.toString( edge.getId() ) );
@@ -54,6 +64,7 @@ public class XmlResultWriter extends AbstractXmlWriter implements ResultWriter {
                 getWriter().writeAttribute( PAID.name().toLowerCase(), Boolean.toString( edge.getAttributes().isPaid() ) );
                 getWriter().writeEndElement();
             }
+            getWriter().writeEndElement();
             getWriter().writeStartElement( COORDINATES.name().toLowerCase() );
             Node currentNode = path.getSourceNode();
             for ( Edge edge : path.getEdges() ) {
@@ -77,13 +88,7 @@ public class XmlResultWriter extends AbstractXmlWriter implements ResultWriter {
         } catch ( XMLStreamException ex ) {
             throw new IOException( ex );
         }
-    }
-
-    private void writeCoordinate( Coordinate coordinate ) throws XMLStreamException {
-        getWriter().writeStartElement( COORDINATE.name().toLowerCase() );
-        getWriter().writeAttribute( LATITUDE.name().toLowerCase(), Double.toString( coordinate.getLatitude() ) );
-        getWriter().writeAttribute( LONGITUDE.name().toLowerCase(), Double.toString( coordinate.getLongitude() ) );
-        getWriter().writeEndElement();
+        close();
     }
 
 }

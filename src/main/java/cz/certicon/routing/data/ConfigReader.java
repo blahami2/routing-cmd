@@ -6,12 +6,10 @@
 package cz.certicon.routing.data;
 
 import cz.certicon.routing.model.Config;
-import java.io.IOException;
 
 /**
  *
  * @author Michael Blaha {@literal <michael.blaha@certicon.cz>}
  */
-public interface ConfigReader extends Reader {
-    public Config read() throws IOException;
+public interface ConfigReader extends Reader<Void, Config> {
 }
