@@ -29,10 +29,10 @@ import cz.certicon.routing.data.coordinates.CoordinateReader;
 import cz.certicon.routing.data.coordinates.CoordinateSupplyFactory;
 import cz.certicon.routing.data.coordinates.CoordinateWriter;
 import cz.certicon.routing.data.coordinates.xml.XmlCoordinateSupplyFactory;
-import cz.certicon.routing.data.graph.GraphIoFactory;
 import cz.certicon.routing.data.graph.GraphReader;
 import cz.certicon.routing.data.graph.GraphWriter;
-import cz.certicon.routing.data.graph.xml.XmlGraphIoFactory;
+import cz.certicon.routing.data.graph.xml.XmlGraphReader;
+import cz.certicon.routing.data.graph.xml.XmlGraphWriter;
 import cz.certicon.routing.data.osm.OsmPbfDataSource;
 import cz.certicon.routing.data.xml.XmlConfigIoFactory;
 import cz.certicon.routing.data.xml.XmlExecutionStatsIoFactory;
@@ -80,7 +80,6 @@ public class Route {
     }
 
     private final ConfigIoFactory configIoFactory = new XmlConfigIoFactory();
-    private final GraphIoFactory graphIoFactory = new XmlGraphIoFactory();
     private final CoordinateSupplyFactory coordFactory = new XmlCoordinateSupplyFactory();
     private final GraphEntityFactory entityFactory = new NeighbourListGraphEntityFactory();
     private final DistanceFactory distanceFactory = new LengthDistanceFactory();
@@ -129,7 +128,7 @@ public class Route {
         }
         ConfigReader configReader = configIoFactory.createReader( new FileSource( configFile ) );
         config = configReader.read( null );
-        if(config.getReferenceRouteStatsPath() == null){
+        if ( config.getReferenceRouteStatsPath() == null ) {
             System.out.println( "Update your config file with reference route statistics (or let the application create a new tempalte for you). Exiting." );
             return;
         }
@@ -182,7 +181,7 @@ public class Route {
                 inputDir.mkdir();
             }
             System.out.println( "Required files do not exist. Generating..." );
-            GraphWriter graphWriter = graphIoFactory.createWriter( new FileDestination( graphFile ) );
+            GraphWriter graphWriter = new XmlGraphWriter( new FileDestination( graphFile ) );
             CoordinateWriter coordWriter = coordFactory.createWriter( new FileDestination( coordFile ) );
             MapDataSource dataSource = new OsmPbfDataSource( new FileSource( pbfFile ) );
             Restriction restriction = Restriction.getDefault();
@@ -226,7 +225,7 @@ public class Route {
 
     public void onFilesAvailable() throws IOException {
         System.out.println( "Loading graph..." );
-        GraphReader graphReader = graphIoFactory.createReader( new FileSource( graphFile ) );
+        GraphReader graphReader = new XmlGraphReader( new FileSource( graphFile ) );
         CoordinateReader coordReader = coordFactory.createReader( new FileSource( coordFile ) );
         graphReader.open();
         Graph graph = graphReader.read( new Pair<>( entityFactory, distanceFactory ) );
@@ -264,6 +263,7 @@ public class Route {
         double accuracy = RouteStatsComparator.calculateAccuracy( routeStatsIoFactory.createReader( new FileSource( refRouteStatsFile ) ).read( null ), actualRouteStats );
         executionStatsWriter.write( new ExecutionStatsImpl( timeMeasurement.getTimeElapsed(), 0, accuracy ) );
         System.out.println( "Done exporting. Displaying map..." );
+        System.out.flush();
         PathPresenter map = new JxMapViewerFrame();
         map.setDisplayEdgeText( false );
         map.setDisplayNodeText( false );
