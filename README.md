@@ -22,6 +22,10 @@
 
 ## Versions ##
 
+### 1.2 ###
+- Switched to directed graphs
+- Graph file creation is not recommended (please, provide valid graph files in folder named NAME.pbf based on the pbf file provided - TO BE FIXED)
+
 ### 1.1 ###
 - Added new content to the config file: path to the reference route statistics
 - Provided statistics are compared to the result
