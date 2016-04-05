@@ -26,9 +26,9 @@ import cz.certicon.routing.data.RouteStatsIoFactory;
 import cz.certicon.routing.data.RouteStatsWriter;
 import cz.certicon.routing.data.basic.FileDestination;
 import cz.certicon.routing.data.coordinates.CoordinateReader;
-import cz.certicon.routing.data.coordinates.CoordinateSupplyFactory;
 import cz.certicon.routing.data.coordinates.CoordinateWriter;
-import cz.certicon.routing.data.coordinates.xml.XmlCoordinateSupplyFactory;
+import cz.certicon.routing.data.coordinates.xml.XmlCoordinateReader;
+import cz.certicon.routing.data.coordinates.xml.XmlCoordinateWriter;
 import cz.certicon.routing.data.graph.GraphReader;
 import cz.certicon.routing.data.graph.GraphWriter;
 import cz.certicon.routing.data.graph.xml.XmlGraphReader;
@@ -56,6 +56,7 @@ import cz.certicon.routing.utils.GraphUtils;
 import cz.certicon.routing.utils.RouteStatsComparator;
 import cz.certicon.routing.utils.measuring.TimeMeasurement;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -80,7 +81,6 @@ public class Route {
     }
 
     private final ConfigIoFactory configIoFactory = new XmlConfigIoFactory();
-    private final CoordinateSupplyFactory coordFactory = new XmlCoordinateSupplyFactory();
     private final GraphEntityFactory entityFactory = new NeighbourListGraphEntityFactory();
     private final DistanceFactory distanceFactory = new LengthDistanceFactory();
     private final RouteStatsIoFactory routeStatsIoFactory = new XmlRouteStatsIoFactory();
@@ -182,7 +182,7 @@ public class Route {
             }
             System.out.println( "Required files do not exist. Generating..." );
             GraphWriter graphWriter = new XmlGraphWriter( new FileDestination( graphFile ) );
-            CoordinateWriter coordWriter = coordFactory.createWriter( new FileDestination( coordFile ) );
+            CoordinateWriter coordWriter = new XmlCoordinateWriter( new FileDestination( coordFile ) );
             MapDataSource dataSource = new OsmPbfDataSource( new FileSource( pbfFile ) );
             Restriction restriction = Restriction.getDefault();
             restriction.addAllowedPair( "highway", "motorway" );
@@ -207,10 +207,12 @@ public class Route {
                     graphWriter.write( graph );
                     graphWriter.close();
                     coordWriter.open();
+                    Map<Edge, List<Coordinate>> cm = new HashMap<>();
                     for ( Edge edge : graph.getEdges() ) {
-                        coordWriter.write( new Pair<>( edge, edge.getCoordinates() ) );
+                        cm.put( edge, edge.getCoordinates() );
                         edge.setCoordinates( null );
                     }
+                    coordWriter.write( cm );
                     coordWriter.close();
                     System.out.print( "Done generating. " );
                     onFilesAvailable();
@@ -226,7 +228,7 @@ public class Route {
     public void onFilesAvailable() throws IOException {
         System.out.println( "Loading graph..." );
         GraphReader graphReader = new XmlGraphReader( new FileSource( graphFile ) );
-        CoordinateReader coordReader = coordFactory.createReader( new FileSource( coordFile ) );
+        CoordinateReader coordReader = new XmlCoordinateReader( new FileSource( coordFile ) );
         graphReader.open();
         Graph graph = graphReader.read( new Pair<>( entityFactory, distanceFactory ) );
         graphReader.close();

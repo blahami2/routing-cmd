@@ -57,10 +57,8 @@ public class XmlResultWriter extends AbstractXmlWriter<Path> implements ResultWr
                 getWriter().writeAttribute( ID.name().toLowerCase(), Edge.Id.toString( edge.getId() ) );
                 getWriter().writeAttribute( SOURCE.name().toLowerCase(), Node.Id.toString( edge.getSourceNode().getId() ) );
                 getWriter().writeAttribute( TARGET.name().toLowerCase(), Node.Id.toString( edge.getTargetNode().getId() ) );
-                getWriter().writeAttribute( SPEED_FORWARD.name().toLowerCase(), Double.toString( edge.getAttributes().getSpeed( true ) ) );
-                getWriter().writeAttribute( SPEED_BACKWARD.name().toLowerCase(), Double.toString( edge.getAttributes().getSpeed( false ) ) );
+                getWriter().writeAttribute( SPEED_FORWARD.name().toLowerCase(), Double.toString( edge.getSpeed(  ) ) );
                 getWriter().writeAttribute( LENGTH.name().toLowerCase(), Double.toString( edge.getAttributes().getLength() ) );
-                getWriter().writeAttribute( ONEWAY.name().toLowerCase(), Boolean.toString( edge.getAttributes().isOneWay() ) );
                 getWriter().writeAttribute( PAID.name().toLowerCase(), Boolean.toString( edge.getAttributes().isPaid() ) );
                 getWriter().writeEndElement();
             }
