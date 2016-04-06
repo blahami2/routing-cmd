@@ -24,7 +24,9 @@
 
 ### 1.2 ###
 - Switched to directed graphs
-- Graph file creation is not recommended (please, provide valid graph files in folder named NAME.pbf based on the pbf file provided - TO BE FIXED)
+- CHANGE: provide file input path and file name (see config.xml), also possible to specify path viewer
+    - JXMAPVIEWER - default viewer
+    - GRAPHSTREAM - new graph viewer, no tiles, movable nodes (for crossroad expansion examination)
 
 ### 1.1 ###
 - Added new content to the config file: path to the reference route statistics
