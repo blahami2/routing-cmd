@@ -25,7 +25,7 @@ import cz.certicon.routing.model.basic.ExecutionStatsImpl;
  */
 public class XmlExecutionStatsReader extends AbstractXmlReader<Void, ExecutionStats> implements ExecutionStatsReader {
 
-    XmlExecutionStatsReader( DataSource source ) {
+    public XmlExecutionStatsReader( DataSource source ) {
         super( source );
     }
 

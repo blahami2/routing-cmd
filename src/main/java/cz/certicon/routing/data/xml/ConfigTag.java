@@ -10,5 +10,5 @@ package cz.certicon.routing.data.xml;
  * @author Michael Blaha {@literal <michael.blaha@certicon.cz>}
  */
 public enum ConfigTag {
-    ROOT, PBF, FROM, TO, LATITUDE, LONGITUDE, ROUTE_STATS;
+    ROOT, FILENAME, DATA, PATH_PRESENTER, FROM, TO, LATITUDE, LONGITUDE, ROUTE_STATS;
 }

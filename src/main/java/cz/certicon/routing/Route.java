@@ -9,7 +9,6 @@ import cz.certicon.routing.application.algorithm.DistanceFactory;
 import cz.certicon.routing.application.algorithm.RoutingAlgorithm;
 import cz.certicon.routing.application.algorithm.algorithms.dijkstra.DijkstraRoutingAlgorithm;
 import cz.certicon.routing.application.algorithm.data.number.LengthDistanceFactory;
-import cz.certicon.routing.data.ConfigIoFactory;
 import cz.certicon.routing.model.Config;
 import cz.certicon.routing.data.basic.FileSource;
 import java.io.File;
@@ -20,9 +19,7 @@ import cz.certicon.routing.data.DataSource;
 import cz.certicon.routing.data.ExecutionStatsWriter;
 import cz.certicon.routing.data.MapDataSource;
 import cz.certicon.routing.data.Restriction;
-import cz.certicon.routing.data.ResultIoFactory;
 import cz.certicon.routing.data.ResultWriter;
-import cz.certicon.routing.data.RouteStatsIoFactory;
 import cz.certicon.routing.data.RouteStatsWriter;
 import cz.certicon.routing.data.basic.FileDestination;
 import cz.certicon.routing.data.coordinates.CoordinateReader;
@@ -34,10 +31,13 @@ import cz.certicon.routing.data.graph.GraphWriter;
 import cz.certicon.routing.data.graph.xml.XmlGraphReader;
 import cz.certicon.routing.data.graph.xml.XmlGraphWriter;
 import cz.certicon.routing.data.osm.OsmPbfDataSource;
-import cz.certicon.routing.data.xml.XmlConfigIoFactory;
-import cz.certicon.routing.data.xml.XmlExecutionStatsIoFactory;
-import cz.certicon.routing.data.xml.XmlResultIoFactory;
-import cz.certicon.routing.data.xml.XmlRouteStatsIoFactory;
+import cz.certicon.routing.data.xml.XmlConfigReader;
+import cz.certicon.routing.data.xml.XmlConfigWriter;
+import cz.certicon.routing.data.xml.XmlExecutionStatsWriter;
+import cz.certicon.routing.data.xml.XmlResultWriter;
+import cz.certicon.routing.data.xml.XmlRouteStatsReader;
+import cz.certicon.routing.data.xml.XmlRouteStatsWriter;
+import cz.certicon.routing.model.PathPresenterEnum;
 import cz.certicon.routing.model.RouteStats;
 import cz.certicon.routing.model.basic.ConfigImpl;
 import cz.certicon.routing.model.basic.ExecutionStatsImpl;
@@ -51,6 +51,7 @@ import cz.certicon.routing.model.entity.Node;
 import cz.certicon.routing.model.entity.Path;
 import cz.certicon.routing.model.entity.neighbourlist.NeighbourListGraphEntityFactory;
 import cz.certicon.routing.presentation.PathPresenter;
+import cz.certicon.routing.presentation.graphstream.GraphStreamPathPresenter;
 import cz.certicon.routing.presentation.jxmapviewer.JxMapViewerFrame;
 import cz.certicon.routing.utils.GraphUtils;
 import cz.certicon.routing.utils.RouteStatsComparator;
@@ -80,11 +81,9 @@ public class Route {
         new Route().run( configFilePath );
     }
 
-    private final ConfigIoFactory configIoFactory = new XmlConfigIoFactory();
     private final GraphEntityFactory entityFactory = new NeighbourListGraphEntityFactory();
     private final DistanceFactory distanceFactory = new LengthDistanceFactory();
-    private final RouteStatsIoFactory routeStatsIoFactory = new XmlRouteStatsIoFactory();
-    private File pbfFile;
+//    private File pbfFile;
     private File inputDir;
     private File outputDir;
     private File graphFile;
@@ -107,12 +106,14 @@ public class Route {
             while ( true ) {
                 String next = sc.next();
                 if ( next.equalsIgnoreCase( "y" ) || next.equalsIgnoreCase( "yes" ) ) {
-                    Config cfg = new ConfigImpl(
-                            "insert/pbf/path/here",
+                    ConfigImpl cfg = new ConfigImpl(
+                            "datafile_basename",
+                            "insert/datafiles/path/here",
                             "insert/reference_route_stats/path/here",
                             new Coordinate( 1.2345, 1.2345 ),
                             new Coordinate( 1.2345, 1.2345 ) );
-                    ConfigWriter configWriter = configIoFactory.createWriter( new FileDestination( configFile ) );
+                    cfg.setPathPresenterEnum( PathPresenterEnum.JXMAPVIEWER );
+                    ConfigWriter configWriter = new XmlConfigWriter( new FileDestination( configFile ) );
                     configWriter.open();
                     configWriter.write( cfg );
                     configWriter.close();
@@ -126,7 +127,7 @@ public class Route {
                 }
             }
         }
-        ConfigReader configReader = configIoFactory.createReader( new FileSource( configFile ) );
+        ConfigReader configReader = new XmlConfigReader( new FileSource( configFile ) );
         config = configReader.read( null );
         if ( config.getReferenceRouteStatsPath() == null ) {
             System.out.println( "Update your config file with reference route statistics (or let the application create a new tempalte for you). Exiting." );
@@ -145,7 +146,7 @@ public class Route {
                 String next = sc.next();
                 if ( next.equalsIgnoreCase( "y" ) || next.equalsIgnoreCase( "yes" ) ) {
                     RouteStats routeStats = new RouteStatsImpl( 1, 1, 0 );
-                    RouteStatsWriter routeStatsWriter = routeStatsIoFactory.createWriter( new FileDestination( refRouteStatsFile ) );
+                    RouteStatsWriter routeStatsWriter = new XmlRouteStatsWriter( new FileDestination( refRouteStatsFile ) );
                     routeStatsWriter.write( routeStats );
                     System.out.println( "Template has been created at: '" + refRouteStatsFile.getAbsolutePath() + "'. Exiting." );
                     return;
@@ -159,67 +160,33 @@ public class Route {
         } else {
             refRouteStatsFile = refRouteStatsFile.getAbsoluteFile();
         }
-        pbfFile = new File( config.getPbfPath() ).getAbsoluteFile();
-        if ( !config.getPbfPath().endsWith( ".pbf" ) ) {
-            System.out.println( "PBF file must have suffix '.pbf'. Exiting." );
+        if ( config.getInputDataFolderPath() == null ) {
+            System.out.println( "Data folder path not provided. Please, provide data folder path in tag 'data' (or let the application create a new template for you). Exiting." );
             return;
         }
-        if ( !pbfFile.exists() ) {
-            System.out.println( "PBF file does not exist: '" + config.getPbfPath() + "'. Exiting." );
-            return;
-        }
-        inputDir = new File( pbfFile.getParent() + File.separator + pbfFile.getName().substring( 0, pbfFile.getName().length() - 4 ) );
+        inputDir = new File( config.getInputDataFolderPath() );
         if ( inputDir.exists() && !inputDir.isDirectory() ) {
             System.out.println( "File exists, but is not a directory: '" + inputDir.getAbsolutePath() + "'. Exiting." );
             return;
         }
-        graphFile = new File( inputDir.getAbsolutePath() + File.separator + pbfFile.getName().substring( 0, pbfFile.getName().length() - 4 ) + "_graph.xml" ).getAbsoluteFile();
-        coordFile = new File( inputDir.getAbsolutePath() + File.separator + pbfFile.getName().substring( 0, pbfFile.getName().length() - 4 ) + "_coord.xml" ).getAbsoluteFile();
+        if ( config.getPathPresenter() == null ) {
+            System.out.println( "Warning: no path presenter specified. Using default. (solution: use 'path_presenter' tag in order to specify a path presenter:" );
+            for ( PathPresenterEnum value : PathPresenterEnum.values() ) {
+                System.out.println( value.name() );
+            }
+            System.out.println( ")" );
+        }
+        graphFile = new File( inputDir.getAbsolutePath() + File.separator + config.getFileName() + "_graph.xml" ).getAbsoluteFile();
+        coordFile = new File( inputDir.getAbsolutePath() + File.separator + config.getFileName() + "_coord.xml" ).getAbsoluteFile();
 
         if ( !graphFile.exists() || !coordFile.exists() ) {
             if ( !inputDir.exists() ) {
                 inputDir.mkdir();
             }
-            System.out.println( "Required files do not exist. Generating..." );
-            GraphWriter graphWriter = new XmlGraphWriter( new FileDestination( graphFile ) );
-            CoordinateWriter coordWriter = new XmlCoordinateWriter( new FileDestination( coordFile ) );
-            MapDataSource dataSource = new OsmPbfDataSource( new FileSource( pbfFile ) );
-            Restriction restriction = Restriction.getDefault();
-            restriction.addAllowedPair( "highway", "motorway" );
-            restriction.addAllowedPair( "highway", "trunk" );
-            restriction.addAllowedPair( "highway", "primary" );
-            restriction.addAllowedPair( "highway", "secondary" );
-            restriction.addAllowedPair( "highway", "tertiary" );
-            restriction.addAllowedPair( "highway", "unclassified" );
-            restriction.addAllowedPair( "highway", "residential" );
-            restriction.addAllowedPair( "highway", "service" );
-            restriction.addAllowedPair( "highway", "motorway-link" );
-            restriction.addAllowedPair( "highway", "trunk-link" );
-            restriction.addAllowedPair( "highway", "primary-link" );
-            restriction.addAllowedPair( "highway", "secondary-link" );
-            restriction.addAllowedPair( "highway", "tertiary-link" );
-            restriction.addForbiddenPair( "motor_vehicle", "no" );
-            dataSource.setRestrictions( restriction );
-            dataSource.loadGraph( entityFactory, distanceFactory, ( Graph graph ) -> {
-//            File coordFile = new File( "D:\\Routing\\Data\\coords.xml" );
-                try {
-                    graphWriter.open();
-                    graphWriter.write( graph );
-                    graphWriter.close();
-                    coordWriter.open();
-                    Map<Edge, List<Coordinate>> cm = new HashMap<>();
-                    for ( Edge edge : graph.getEdges() ) {
-                        cm.put( edge, edge.getCoordinates() );
-                        edge.setCoordinates( null );
-                    }
-                    coordWriter.write( cm );
-                    coordWriter.close();
-                    System.out.print( "Done generating. " );
-                    onFilesAvailable();
-                } catch ( IOException ex ) {
-                    System.err.println( ex );
-                }
-            } );
+            System.out.println( "Required files do not exist. Please, provide files at:" );
+            System.out.println( graphFile.getAbsolutePath() );
+            System.out.println( coordFile.getAbsolutePath() );
+            System.out.println( "Exiting." );
         } else {
             onFilesAvailable();
         }
@@ -250,23 +217,37 @@ public class Route {
         }
         System.out.println( "Done routing. Exporting results to directory: '" + outputDir.getAbsolutePath() + "'" );
         File resultFile = new File( outputDir.getAbsolutePath() + File.separator + "result.xml" );
-        ResultIoFactory resultIoFactory = new XmlResultIoFactory();
-        ResultWriter resultWriter = resultIoFactory.createWriter( new FileDestination( resultFile ) );
+        ResultWriter resultWriter = new XmlResultWriter( new FileDestination( resultFile ) );
         Map<Edge, List<Coordinate>> coordinates = coordReader.read( new HashSet<>( route.getEdges() ) );
         coordReader.close();
         GraphUtils.fillWithCoordinates( route.getEdges(), coordinates );
         resultWriter.write( route );
         File routeStatsFile = new File( outputDir.getAbsolutePath() + File.separator + "route_statistics.xml" );
-        RouteStatsWriter routeStatsWriter = routeStatsIoFactory.createWriter( new FileDestination( routeStatsFile ) );
+        RouteStatsWriter routeStatsWriter = new XmlRouteStatsWriter( new FileDestination( routeStatsFile ) );
         RouteStats actualRouteStats = new RouteStatsImpl( (long) route.getLength(), (long) route.getTime(), 0 );
         routeStatsWriter.write( actualRouteStats );
         File executionStatsFile = new File( outputDir.getAbsolutePath() + File.separator + "execution_statistics.xml" );
-        ExecutionStatsWriter executionStatsWriter = new XmlExecutionStatsIoFactory().createWriter( new FileDestination( executionStatsFile ) );
-        double accuracy = RouteStatsComparator.calculateAccuracy( routeStatsIoFactory.createReader( new FileSource( refRouteStatsFile ) ).read( null ), actualRouteStats );
+        ExecutionStatsWriter executionStatsWriter = new XmlExecutionStatsWriter( new FileDestination( executionStatsFile ) );
+        double accuracy = RouteStatsComparator.calculateAccuracy( new XmlRouteStatsReader( new FileSource( refRouteStatsFile ) ).read( null ), actualRouteStats );
         executionStatsWriter.write( new ExecutionStatsImpl( timeMeasurement.getTimeElapsed(), 0, accuracy ) );
         System.out.println( "Done exporting. Displaying map..." );
         System.out.flush();
-        PathPresenter map = new JxMapViewerFrame();
+        PathPresenter map;
+        if ( config.getPathPresenter() != null ) {
+            switch ( config.getPathPresenter() ) {
+                case GRAPHSTREAM:
+                    map = new GraphStreamPathPresenter( entityFactory );
+                    break;
+                case JXMAPVIEWER:
+                    map = new JxMapViewerFrame();
+                    break;
+                default:
+                    map = new JxMapViewerFrame();
+                    break;
+            }
+        } else {
+            map = new JxMapViewerFrame();
+        }
         map.setDisplayEdgeText( false );
         map.setDisplayNodeText( false );
         map.displayPath( route );

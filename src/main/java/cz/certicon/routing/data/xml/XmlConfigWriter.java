@@ -19,18 +19,24 @@ import javax.xml.stream.XMLStreamException;
  */
 public class XmlConfigWriter extends AbstractXmlWriter<Config> implements ConfigWriter {
 
-    XmlConfigWriter( DataDestination dataDestination ) {
+    public XmlConfigWriter( DataDestination dataDestination ) {
         super( dataDestination );
     }
 
     @Override
     protected void openedWrite( Config config ) throws IOException {
         try {
-            getWriter().writeStartElement( PBF.name().toLowerCase() );
-            getWriter().writeCharacters( config.getPbfPath() );
+            getWriter().writeStartElement( FILENAME.name().toLowerCase() );
+            getWriter().writeCharacters( config.getFileName());
+            getWriter().writeEndElement();
+            getWriter().writeStartElement( DATA.name().toLowerCase() );
+            getWriter().writeCharacters( config.getInputDataFolderPath() );
             getWriter().writeEndElement();
             getWriter().writeStartElement( ROUTE_STATS.name().toLowerCase() );
-            getWriter().writeCharacters( config.getReferenceRouteStatsPath());
+            getWriter().writeCharacters( config.getReferenceRouteStatsPath() );
+            getWriter().writeEndElement();
+            getWriter().writeStartElement( PATH_PRESENTER.name().toLowerCase() );
+            getWriter().writeCharacters( config.getPathPresenter().name() );
             getWriter().writeEndElement();
             getWriter().writeStartElement( FROM.name().toLowerCase() );
             getWriter().writeAttribute( LATITUDE.name().toLowerCase(), Double.toString( config.getSource().getLatitude() ) );

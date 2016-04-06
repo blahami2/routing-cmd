@@ -24,7 +24,7 @@ import static cz.certicon.routing.data.xml.ResultTag.*;
  */
 public class XmlResultWriter extends AbstractXmlWriter<Path> implements ResultWriter {
 
-    XmlResultWriter( DataDestination destination ) {
+    public XmlResultWriter( DataDestination destination ) {
         super( destination );
     }
 

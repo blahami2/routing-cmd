@@ -19,7 +19,7 @@ import static cz.certicon.routing.data.xml.RouteStatsTag.*;
  */
 public class XmlRouteStatsWriter extends AbstractXmlWriter<RouteStats> implements RouteStatsWriter {
 
-    XmlRouteStatsWriter( DataDestination destination ) {
+    public XmlRouteStatsWriter( DataDestination destination ) {
         super( destination );
     }
 

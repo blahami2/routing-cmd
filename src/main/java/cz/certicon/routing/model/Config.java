@@ -12,8 +12,12 @@ import cz.certicon.routing.model.entity.Coordinate;
  * @author Michael Blaha {@literal <michael.blaha@certicon.cz>}
  */
 public interface Config {
-
-    public String getPbfPath();
+    
+    public String getFileName();
+    
+    public String getInputDataFolderPath();
+    
+    public PathPresenterEnum getPathPresenter();
 
     public String getReferenceRouteStatsPath();
     

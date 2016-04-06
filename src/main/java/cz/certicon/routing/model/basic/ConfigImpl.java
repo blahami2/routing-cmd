@@ -6,6 +6,7 @@
 package cz.certicon.routing.model.basic;
 
 import cz.certicon.routing.model.Config;
+import cz.certicon.routing.model.PathPresenterEnum;
 import cz.certicon.routing.model.entity.Coordinate;
 
 /**
@@ -14,21 +15,23 @@ import cz.certicon.routing.model.entity.Coordinate;
  */
 public class ConfigImpl implements Config {
 
-    private final String pbfPath;
+    private final String fileName;
+    private final String inputDataFolderPath;
     private final String referenceRouteStatsPath;
     private final Coordinate source;
     private final Coordinate destination;
+    private PathPresenterEnum pathPresenterEnum;
 
-    public ConfigImpl( String pbfPath, String referenceRouteStatsPath, Coordinate source, Coordinate destination ) {
-        this.pbfPath = pbfPath;
+    public ConfigImpl( String fileName, String inputDataFolderPath, String referenceRouteStatsPath, Coordinate source, Coordinate destination ) {
+        this.fileName = fileName;
+        this.inputDataFolderPath = inputDataFolderPath;
         this.referenceRouteStatsPath = referenceRouteStatsPath;
         this.source = source;
         this.destination = destination;
     }
 
-    @Override
-    public String getPbfPath() {
-        return pbfPath;
+    public void setPathPresenterEnum( PathPresenterEnum pathPresenterEnum ) {
+        this.pathPresenterEnum = pathPresenterEnum;
     }
 
     @Override
@@ -44,6 +47,21 @@ public class ConfigImpl implements Config {
     @Override
     public String getReferenceRouteStatsPath() {
         return referenceRouteStatsPath;
+    }
+
+    @Override
+    public String getInputDataFolderPath() {
+        return inputDataFolderPath;
+    }
+
+    @Override
+    public PathPresenterEnum getPathPresenter() {
+        return pathPresenterEnum;
+    }
+
+    @Override
+    public String getFileName() {
+        return fileName;
     }
 
 }

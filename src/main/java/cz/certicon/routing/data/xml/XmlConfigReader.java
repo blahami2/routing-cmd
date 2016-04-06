@@ -19,6 +19,8 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 import static cz.certicon.routing.data.xml.ConfigTag.*;
+import cz.certicon.routing.model.PathPresenterEnum;
+import cz.certicon.routing.presentation.PathPresenter;
 
 /**
  *
@@ -26,7 +28,7 @@ import static cz.certicon.routing.data.xml.ConfigTag.*;
  */
 public class XmlConfigReader extends AbstractXmlReader<Void, Config> implements ConfigReader {
 
-    XmlConfigReader( DataSource dataSource ) {
+    public XmlConfigReader( DataSource dataSource ) {
         super( dataSource );
     }
 
@@ -48,14 +50,16 @@ public class XmlConfigReader extends AbstractXmlReader<Void, Config> implements 
 
     private static class Handler extends DefaultHandler {
 
-        private String pbfPath;
+        private String filename;
+        private String dataPath;
         private String routeStatsPath;
+        private String pathPresenter;
         private double aLatitude;
         private double aLongitude;
         private double bLatitude;
         private double bLongitude;
-        private boolean isParsingPath = false;
-        private StringBuilder pathBuilder;
+        private boolean isParsingString = false;
+        private StringBuilder stringBuilder;
 
         public Handler() {
         }
@@ -68,35 +72,49 @@ public class XmlConfigReader extends AbstractXmlReader<Void, Config> implements 
             } else if ( qName.equalsIgnoreCase( TO.name() ) ) {
                 bLatitude = Double.parseDouble( attributes.getValue( LATITUDE.name().toLowerCase() ) );
                 bLongitude = Double.parseDouble( attributes.getValue( LONGITUDE.name().toLowerCase() ) );
-            } else if ( qName.equalsIgnoreCase( PBF.name() ) ) {
-                isParsingPath = true;
-                pathBuilder = new StringBuilder();
-            } else if ( qName.equalsIgnoreCase( ROUTE_STATS.name() ) ) {
-                isParsingPath = true;
-                pathBuilder = new StringBuilder();
+            } else if ( qName.equalsIgnoreCase( DATA.name() )
+                    || qName.equalsIgnoreCase( ROUTE_STATS.name() )
+                    || qName.equalsIgnoreCase( PATH_PRESENTER.name() )
+                    || qName.equalsIgnoreCase( FILENAME.name() ) ) {
+                isParsingString = true;
+                stringBuilder = new StringBuilder();
             }
         }
 
         @Override
         public void characters( char[] chars, int i, int i1 ) throws SAXException {
-            if ( isParsingPath ) {
-                pathBuilder.append( new String( chars, i, i1 ) );
+            if ( isParsingString ) {
+                stringBuilder.append( new String( chars, i, i1 ) );
             }
         }
 
         @Override
         public void endElement( String uri, String localName, String qName ) throws SAXException {
-            if ( qName.equalsIgnoreCase( PBF.name() ) ) {
-                isParsingPath = false;
-                pbfPath = pathBuilder.toString();
+            if ( qName.equalsIgnoreCase( DATA.name() ) ) {
+                isParsingString = false;
+                dataPath = stringBuilder.toString();
             } else if ( qName.equalsIgnoreCase( ROUTE_STATS.name() ) ) {
-                isParsingPath = false;
-                routeStatsPath = pathBuilder.toString();
+                isParsingString = false;
+                routeStatsPath = stringBuilder.toString();
+            } else if ( qName.equalsIgnoreCase( PATH_PRESENTER.name() ) ) {
+                isParsingString = false;
+                pathPresenter = stringBuilder.toString();
+            } else if ( qName.equalsIgnoreCase( FILENAME.name() ) ) {
+                isParsingString = false;
+                filename = stringBuilder.toString();
             }
         }
 
         public Config getConfig() {
-            return new ConfigImpl( pbfPath, routeStatsPath, new Coordinate( aLatitude, aLongitude ), new Coordinate( bLatitude, bLongitude ) );
+            ConfigImpl cfg = new ConfigImpl( filename, dataPath, routeStatsPath, new Coordinate( aLatitude, aLongitude ), new Coordinate( bLatitude, bLongitude ) );
+            PathPresenterEnum pathPresenterEnum;
+            try {
+                pathPresenterEnum = PathPresenterEnum.valueOf( pathPresenter );
+                cfg.setPathPresenterEnum( pathPresenterEnum );
+            } catch ( IllegalArgumentException | NullPointerException ex ) {
+                // not present
+            }
+            return cfg;
         }
     }
 }
