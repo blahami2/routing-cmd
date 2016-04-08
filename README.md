@@ -24,7 +24,8 @@
 
 ### 1.2 ###
 - Switched to directed graphs
-- CHANGE: provide file input path and file name (see config.xml), also possible to specify path viewer
+- CHANGE: provide file input path and file name (see config.xml), also possible to specify path viewer 
+    - NONE - no viewer
     - JXMAPVIEWER - default viewer
     - GRAPHSTREAM - new graph viewer, no tiles, movable nodes (for crossroad expansion examination)
 

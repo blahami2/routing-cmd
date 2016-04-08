@@ -7,6 +7,7 @@ package cz.certicon.routing;
 
 import cz.certicon.routing.application.algorithm.DistanceFactory;
 import cz.certicon.routing.application.algorithm.RoutingAlgorithm;
+import cz.certicon.routing.application.algorithm.algorithms.astar.StraightLineAStarRoutingAlgorithm;
 import cz.certicon.routing.application.algorithm.algorithms.dijkstra.DijkstraRoutingAlgorithm;
 import cz.certicon.routing.application.algorithm.data.number.LengthDistanceFactory;
 import cz.certicon.routing.model.Config;
@@ -190,7 +191,8 @@ public class Route {
         graphReader.open();
         Graph graph = graphReader.read( new Pair<>( entityFactory, distanceFactory ) );
         graphReader.close();
-        RoutingAlgorithm routingAlgorithm = new DijkstraRoutingAlgorithm( graph, entityFactory, distanceFactory );
+//        RoutingAlgorithm routingAlgorithm = new DijkstraRoutingAlgorithm( graph, entityFactory, distanceFactory );
+        RoutingAlgorithm routingAlgorithm = new StraightLineAStarRoutingAlgorithm( graph, entityFactory, distanceFactory );
         Node source = entityFactory.createNode( Node.Id.generateId(), config.getSource().getLatitude(), config.getSource().getLongitude() );
         Node destination = entityFactory.createNode( Node.Id.generateId(), config.getDestination().getLatitude(), config.getDestination().getLongitude() );
         System.out.println( "Done loading. Routing..." );
@@ -221,8 +223,7 @@ public class Route {
         ExecutionStatsWriter executionStatsWriter = new XmlExecutionStatsWriter( new FileDestination( executionStatsFile ) );
         double accuracy = RouteStatsComparator.calculateAccuracy( new XmlRouteStatsReader( new FileSource( refRouteStatsFile ) ).read( null ), actualRouteStats );
         executionStatsWriter.write( new ExecutionStatsImpl( timeMeasurement.getTimeElapsed(), 0, accuracy ) );
-        System.out.println( "Done exporting. Displaying map..." );
-        System.out.flush();
+
         PathPresenter map;
         if ( config.getPathPresenter() != null ) {
             switch ( config.getPathPresenter() ) {
@@ -232,6 +233,9 @@ public class Route {
                 case JXMAPVIEWER:
                     map = new JxMapViewerFrame();
                     break;
+                case NONE:
+                    map = null;
+                    break;
                 default:
                     map = new JxMapViewerFrame();
                     break;
@@ -239,9 +243,16 @@ public class Route {
         } else {
             map = new JxMapViewerFrame();
         }
-        map.setDisplayEdgeText( false );
-        map.setDisplayNodeText( false );
-        map.displayPath( route );
+        if ( map != null ) {
+            System.out.println( "Done exporting. Displaying map..." );
+            System.out.flush();
+            map.setDisplayEdgeText( false );
+            map.setDisplayNodeText( false );
+            map.displayPath( route );
+        } else {
+            System.out.println( "Done exporting. Path presenter set to none. Finishing..." );
+            System.out.flush();
+        }
     }
 
 }

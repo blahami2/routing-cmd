@@ -10,5 +10,5 @@ package cz.certicon.routing.model;
  * @author Michael Blaha {@literal <michael.blaha@certicon.cz>}
  */
 public enum PathPresenterEnum {
-    JXMAPVIEWER, GRAPHSTREAM;
+    JXMAPVIEWER, GRAPHSTREAM, NONE;
 }
