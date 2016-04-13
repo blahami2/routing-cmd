@@ -8,7 +8,7 @@ package cz.certicon.routing.data.xml;
 import cz.certicon.routing.data.DataDestination;
 import cz.certicon.routing.data.ResultWriter;
 import cz.certicon.routing.data.basic.xml.AbstractXmlWriter;
-import cz.certicon.routing.model.entity.Coordinate;
+import cz.certicon.routing.model.entity.Coordinates;
 import cz.certicon.routing.model.entity.Edge;
 import cz.certicon.routing.model.entity.Node;
 import cz.certicon.routing.model.entity.Path;
@@ -28,7 +28,7 @@ public class XmlResultWriter extends AbstractXmlWriter<Path> implements ResultWr
         super( destination );
     }
 
-    private void writeCoordinate( Coordinate coordinate ) throws XMLStreamException {
+    private void writeCoordinate( Coordinates coordinate ) throws XMLStreamException {
         getWriter().writeStartElement( COORDINATE.name().toLowerCase() );
         getWriter().writeAttribute( LATITUDE.name().toLowerCase(), Double.toString( coordinate.getLatitude() ) );
         getWriter().writeAttribute( LONGITUDE.name().toLowerCase(), Double.toString( coordinate.getLongitude() ) );
@@ -36,7 +36,7 @@ public class XmlResultWriter extends AbstractXmlWriter<Path> implements ResultWr
     }
 
     @Override
-    protected void openedWrite( Path path ) throws IOException {
+    protected void checkedWrite( Path path ) throws IOException {
         try {
             List<Node> sortedNodes = path.getNodes();
             Collections.sort( sortedNodes, ( Node o1, Node o2 ) -> o1.getId().compareTo( o2.getId() ) );
@@ -68,7 +68,7 @@ public class XmlResultWriter extends AbstractXmlWriter<Path> implements ResultWr
             for ( Edge edge : path.getEdges() ) {
                 getWriter().writeStartElement( EDGE.name().toLowerCase() );
                 getWriter().writeAttribute( ID.name().toLowerCase(), Edge.Id.toString( edge.getId() ) );
-                List<Coordinate> coordinates = edge.getCoordinates();
+                List<Coordinates> coordinates = edge.getCoordinates();
                 if ( currentNode.equals( edge.getSourceNode() ) ) {
                     for ( int i = 0; i < coordinates.size(); i++ ) {
                         writeCoordinate( coordinates.get( i ) );

@@ -36,14 +36,14 @@ import cz.certicon.routing.model.basic.ConfigImpl;
 import cz.certicon.routing.model.basic.ExecutionStatsImpl;
 import cz.certicon.routing.model.basic.Pair;
 import cz.certicon.routing.model.basic.RouteStatsImpl;
-import cz.certicon.routing.model.entity.Coordinate;
+import cz.certicon.routing.model.entity.Coordinates;
 import cz.certicon.routing.model.entity.Edge;
 import cz.certicon.routing.model.entity.Graph;
 import cz.certicon.routing.model.entity.GraphEntityFactory;
 import cz.certicon.routing.model.entity.Node;
 import cz.certicon.routing.model.entity.Path;
-import cz.certicon.routing.model.entity.neighbourlist.DirectedNeighbourListGraphEntityFactory;
-import cz.certicon.routing.model.entity.neighbourlist.NeighbourListGraphEntityFactory;
+import cz.certicon.routing.model.entity.neighbourlist.DirectedNeighborListGraphEntityFactory;
+import cz.certicon.routing.model.entity.neighbourlist.NeighborListGraphEntityFactory;
 import cz.certicon.routing.presentation.PathPresenter;
 import cz.certicon.routing.presentation.graphstream.GraphStreamPathPresenter;
 import cz.certicon.routing.presentation.jxmapviewer.JxMapViewerFrame;
@@ -73,7 +73,7 @@ public class Route {
         new Route().run( configFilePath );
     }
 
-    private final GraphEntityFactory entityFactory = new DirectedNeighbourListGraphEntityFactory();
+    private final GraphEntityFactory entityFactory = new DirectedNeighborListGraphEntityFactory();
     private final DistanceFactory distanceFactory = new LengthDistanceFactory();
 //    private File pbfFile;
     private File inputDir;
@@ -102,8 +102,8 @@ public class Route {
                             "datafile_basename",
                             "insert/datafiles/path/here",
                             "insert/reference_route_stats/path/here",
-                            new Coordinate( 1.2345, 1.2345 ),
-                            new Coordinate( 1.2345, 1.2345 ) );
+                            new Coordinates( 1.2345, 1.2345 ),
+                            new Coordinates( 1.2345, 1.2345 ) );
                     cfg.setPathPresenterEnum( PathPresenterEnum.JXMAPVIEWER );
                     ConfigWriter configWriter = new XmlConfigWriter( new FileDestination( configFile ) );
                     configWriter.open();
@@ -193,12 +193,11 @@ public class Route {
         graphReader.close();
 //        RoutingAlgorithm routingAlgorithm = new DijkstraRoutingAlgorithm( graph, entityFactory, distanceFactory );
         RoutingAlgorithm routingAlgorithm = new StraightLineAStarRoutingAlgorithm( graph, entityFactory, distanceFactory );
-        Node source = entityFactory.createNode( Node.Id.generateId(), config.getSource().getLatitude(), config.getSource().getLongitude() );
-        Node destination = entityFactory.createNode( Node.Id.generateId(), config.getDestination().getLatitude(), config.getDestination().getLongitude() );
         System.out.println( "Done loading. Routing..." );
         TimeMeasurement timeMeasurement = new TimeMeasurement();
         timeMeasurement.start();
-        Path route = routingAlgorithm.route( source, destination );
+        Path route = routingAlgorithm.route( new Coordinates( config.getSource().getLatitude(), config.getSource().getLongitude() ),
+                new Coordinates( config.getDestination().getLatitude(), config.getDestination().getLongitude() ) );
         timeMeasurement.stop();
         if ( route == null ) {
             System.out.println( "Path between the two nodes has not been found. Exiting." );
@@ -211,7 +210,7 @@ public class Route {
         System.out.println( "Done routing. Exporting results to directory: '" + outputDir.getAbsolutePath() + "'" );
         File resultFile = new File( outputDir.getAbsolutePath() + File.separator + "result.xml" );
         ResultWriter resultWriter = new XmlResultWriter( new FileDestination( resultFile ) );
-        Map<Edge, List<Coordinate>> coordinates = coordReader.read( new HashSet<>( route.getEdges() ) );
+        Map<Edge, List<Coordinates>> coordinates = coordReader.read( new HashSet<>( route.getEdges() ) );
         coordReader.close();
         GraphUtils.fillWithCoordinates( route.getEdges(), coordinates );
         resultWriter.write( route );

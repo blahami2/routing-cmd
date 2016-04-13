@@ -24,7 +24,7 @@ public class XmlConfigWriter extends AbstractXmlWriter<Config> implements Config
     }
 
     @Override
-    protected void openedWrite( Config config ) throws IOException {
+    protected void checkedWrite( Config config ) throws IOException {
         try {
             getWriter().writeStartElement( FILENAME.name().toLowerCase() );
             getWriter().writeCharacters( config.getFileName());

@@ -24,7 +24,7 @@ public class XmlRouteStatsWriter extends AbstractXmlWriter<RouteStats> implement
     }
 
     @Override
-    protected void openedWrite( RouteStats routeStats ) throws IOException {
+    protected void checkedWrite( RouteStats routeStats ) throws IOException {
         try {
             getWriter().writeStartElement( LENGTH.name().toLowerCase() );
             getWriter().writeCharacters( Long.toString( routeStats.getLength() ) );

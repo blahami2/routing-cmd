@@ -24,7 +24,7 @@ public class XmlExecutionStatsWriter extends AbstractXmlWriter<ExecutionStats> i
     }
 
     @Override
-    protected void openedWrite( ExecutionStats executionStats ) throws IOException {
+    protected void checkedWrite( ExecutionStats executionStats ) throws IOException {
         try {
             getWriter().writeStartElement( MEMORY.name().toLowerCase() );
             getWriter().writeCharacters( Long.toString( executionStats.getMemory()) );

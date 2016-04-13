@@ -30,7 +30,7 @@ public class XmlExecutionStatsReader extends AbstractXmlReader<Void, ExecutionSt
     }
 
     @Override
-    protected ExecutionStats openedRead( Void in ) throws IOException {
+    protected ExecutionStats checkedRead( Void in ) throws IOException {
         try {
             SAXParserFactory factory = SAXParserFactory.newInstance();
             SAXParser saxParser = factory.newSAXParser();

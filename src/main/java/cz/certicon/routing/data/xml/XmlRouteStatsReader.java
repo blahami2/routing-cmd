@@ -30,7 +30,7 @@ public class XmlRouteStatsReader extends AbstractXmlReader<Void, RouteStats> imp
     }
 
     @Override
-    protected RouteStats openedRead( Void in ) throws IOException {
+    protected RouteStats checkedRead( Void in ) throws IOException {
         try {
             SAXParserFactory factory = SAXParserFactory.newInstance();
             SAXParser saxParser = factory.newSAXParser();

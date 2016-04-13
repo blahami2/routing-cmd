@@ -11,7 +11,7 @@ import cz.certicon.routing.data.ConfigReader;
 import cz.certicon.routing.data.DataSource;
 import cz.certicon.routing.data.basic.xml.AbstractXmlReader;
 import cz.certicon.routing.model.basic.ConfigImpl;
-import cz.certicon.routing.model.entity.Coordinate;
+import cz.certicon.routing.model.entity.Coordinates;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -33,7 +33,7 @@ public class XmlConfigReader extends AbstractXmlReader<Void, Config> implements 
     }
 
     @Override
-    protected Config openedRead( Void in ) throws IOException {
+    protected Config checkedRead( Void in ) throws IOException {
         Config result;
         try {
             SAXParserFactory factory = SAXParserFactory.newInstance();
@@ -106,7 +106,7 @@ public class XmlConfigReader extends AbstractXmlReader<Void, Config> implements 
         }
 
         public Config getConfig() {
-            ConfigImpl cfg = new ConfigImpl( filename, dataPath, routeStatsPath, new Coordinate( aLatitude, aLongitude ), new Coordinate( bLatitude, bLongitude ) );
+            ConfigImpl cfg = new ConfigImpl( filename, dataPath, routeStatsPath, new Coordinates( aLatitude, aLongitude ), new Coordinates( bLatitude, bLongitude ) );
             PathPresenterEnum pathPresenterEnum;
             try {
                 pathPresenterEnum = PathPresenterEnum.valueOf( pathPresenter );

@@ -7,7 +7,7 @@ package cz.certicon.routing.model.basic;
 
 import cz.certicon.routing.model.Config;
 import cz.certicon.routing.model.PathPresenterEnum;
-import cz.certicon.routing.model.entity.Coordinate;
+import cz.certicon.routing.model.entity.Coordinates;
 
 /**
  *
@@ -18,11 +18,11 @@ public class ConfigImpl implements Config {
     private final String fileName;
     private final String inputDataFolderPath;
     private final String referenceRouteStatsPath;
-    private final Coordinate source;
-    private final Coordinate destination;
+    private final Coordinates source;
+    private final Coordinates destination;
     private PathPresenterEnum pathPresenterEnum;
 
-    public ConfigImpl( String fileName, String inputDataFolderPath, String referenceRouteStatsPath, Coordinate source, Coordinate destination ) {
+    public ConfigImpl( String fileName, String inputDataFolderPath, String referenceRouteStatsPath, Coordinates source, Coordinates destination ) {
         this.fileName = fileName;
         this.inputDataFolderPath = inputDataFolderPath;
         this.referenceRouteStatsPath = referenceRouteStatsPath;
@@ -35,12 +35,12 @@ public class ConfigImpl implements Config {
     }
 
     @Override
-    public Coordinate getSource() {
+    public Coordinates getSource() {
         return source;
     }
 
     @Override
-    public Coordinate getDestination() {
+    public Coordinates getDestination() {
         return destination;
     }
 
