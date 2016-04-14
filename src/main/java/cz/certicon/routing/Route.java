@@ -168,8 +168,8 @@ public class Route {
             }
             System.out.println( ")" );
         }
-        graphFile = new File( inputDir.getAbsolutePath() + File.separator + config.getFileName() + "_graph.xml" ).getAbsoluteFile();
-        coordFile = new File( inputDir.getAbsolutePath() + File.separator + config.getFileName() + "_coord.xml" ).getAbsoluteFile();
+        graphFile = new File( inputDir.getAbsolutePath() + File.separator + config.getFileName() + ".graph.xml" ).getAbsoluteFile();
+        coordFile = new File( inputDir.getAbsolutePath() + File.separator + config.getFileName() + ".coords.xml" ).getAbsoluteFile();
 
         if ( !graphFile.exists() || !coordFile.exists() ) {
             if ( !inputDir.exists() ) {
