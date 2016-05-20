@@ -9,15 +9,33 @@ package cz.certicon.routing.model;
  *
  * @author Michael Blaha {@literal <michael.blaha@certicon.cz>}
  */
-public interface ExecutionStats {
+public class ExecutionStats {
 
-    /**
-     * Execution time
-     * @return time in milliseconds
-     */
-    public long getTime();
+    private final long nodeSearchTime;
+    private final long routeTime;
+    private final long routeBuildingTime;
+    private final long pathLoadTime;
 
-    public long getMemory();
+    public ExecutionStats( long nodeSearchTime, long routeTime, long routeBuildingTime, long pathLoadTime ) {
+        this.nodeSearchTime = nodeSearchTime;
+        this.routeTime = routeTime;
+        this.routeBuildingTime = routeBuildingTime;
+        this.pathLoadTime = pathLoadTime;
+    }
 
-    public double getAccuracy();
+    public long getNodeSearchTime() {
+        return nodeSearchTime;
+    }
+
+    public long getRouteTime() {
+        return routeTime;
+    }
+
+    public long getRouteBuildingTime() {
+        return routeBuildingTime;
+    }
+
+    public long getPathLoadTime() {
+        return pathLoadTime;
+    }
 }

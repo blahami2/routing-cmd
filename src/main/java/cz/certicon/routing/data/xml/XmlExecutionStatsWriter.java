@@ -25,21 +25,22 @@ public class XmlExecutionStatsWriter extends AbstractXmlWriter<ExecutionStats> i
 
     @Override
     protected void checkedWrite( ExecutionStats executionStats ) throws IOException {
-        try {
-            getWriter().writeStartElement( MEMORY.name().toLowerCase() );
-            getWriter().writeCharacters( Long.toString( executionStats.getMemory()) );
-            getWriter().writeEndElement();
-            getWriter().writeStartElement( TIME.name().toLowerCase() );
-            getWriter().writeCharacters( Long.toString( executionStats.getTime() ) );
-            getWriter().writeEndElement();
-            getWriter().writeStartElement( ACCURACY.name().toLowerCase() );
-            getWriter().writeCharacters( Double.toString( executionStats.getAccuracy()) );
-            getWriter().writeEndElement();
-            getWriter().flush();
-        } catch ( XMLStreamException ex ) {
-            throw new IOException( ex );
-        }
-        close();
+        throw new UnsupportedOperationException( "Not implemented yet" );
+//        try {
+//            getWriter().writeStartElement( MEMORY.name().toLowerCase() );
+//            getWriter().writeCharacters( Long.toString( executionStats.getMemory()) );
+//            getWriter().writeEndElement();
+//            getWriter().writeStartElement( TIME.name().toLowerCase() );
+//            getWriter().writeCharacters( Long.toString( executionStats.getTime() ) );
+//            getWriter().writeEndElement();
+//            getWriter().writeStartElement( ACCURACY.name().toLowerCase() );
+//            getWriter().writeCharacters( Double.toString( executionStats.getAccuracy()) );
+//            getWriter().writeEndElement();
+//            getWriter().flush();
+//        } catch ( XMLStreamException ex ) {
+//            throw new IOException( ex );
+//        }
+//        close();
     }
 
 }

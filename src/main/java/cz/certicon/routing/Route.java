@@ -196,8 +196,8 @@ public class Route {
         System.out.println( "Done loading. Routing..." );
         TimeMeasurement timeMeasurement = new TimeMeasurement();
         timeMeasurement.start();
-        Path route = routingAlgorithm.route( new Coordinates( config.getSource().getLatitude(), config.getSource().getLongitude() ),
-                new Coordinates( config.getDestination().getLatitude(), config.getDestination().getLongitude() ) );
+        Path route = null; //= routingAlgorithm.route( new Coordinates( config.getSource().getLatitude(), config.getSource().getLongitude() ),
+                //new Coordinates( config.getDestination().getLatitude(), config.getDestination().getLongitude() ) );
         timeMeasurement.stop();
         if ( route == null ) {
             System.out.println( "Path between the two nodes has not been found. Exiting." );

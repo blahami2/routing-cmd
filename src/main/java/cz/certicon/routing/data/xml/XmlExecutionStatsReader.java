@@ -17,7 +17,6 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 import static cz.certicon.routing.data.xml.ExecutionStatsTag.*;
-import cz.certicon.routing.model.basic.ExecutionStatsImpl;
 
 /**
  *
@@ -92,7 +91,8 @@ public class XmlExecutionStatsReader extends AbstractXmlReader<Void, ExecutionSt
         }
 
         public ExecutionStats getExecutionStats() {
-            return new ExecutionStatsImpl( time, memory, accuracy );
+//            return new ExecutionStatsImpl( time, memory, accuracy );
+            throw new UnsupportedOperationException( "Not implemented yet" );
         }
     }
 }
