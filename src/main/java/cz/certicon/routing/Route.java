@@ -33,7 +33,6 @@ import cz.certicon.routing.data.xml.XmlRouteStatsWriter;
 import cz.certicon.routing.model.PathPresenterEnum;
 import cz.certicon.routing.model.RouteStats;
 import cz.certicon.routing.model.basic.ConfigImpl;
-import cz.certicon.routing.model.basic.ExecutionStatsImpl;
 import cz.certicon.routing.model.basic.Pair;
 import cz.certicon.routing.model.basic.RouteStatsImpl;
 import cz.certicon.routing.model.entity.Coordinates;
@@ -221,7 +220,7 @@ public class Route {
         File executionStatsFile = new File( outputDir.getAbsolutePath() + File.separator + "execution_statistics.xml" );
         ExecutionStatsWriter executionStatsWriter = new XmlExecutionStatsWriter( new FileDestination( executionStatsFile ) );
         double accuracy = RouteStatsComparator.calculateAccuracy( new XmlRouteStatsReader( new FileSource( refRouteStatsFile ) ).read( null ), actualRouteStats );
-        executionStatsWriter.write( new ExecutionStatsImpl( timeMeasurement.getTimeElapsed(), 0, accuracy ) );
+//        executionStatsWriter.write( new ExecutionStatsImpl( timeMeasurement.getTimeElapsed(), 0, accuracy ) );
 
         PathPresenter map;
         if ( config.getPathPresenter() != null ) {
