@@ -16,6 +16,7 @@ import cz.certicon.routing.model.Input;
 import cz.certicon.routing.model.Result;
 import cz.certicon.routing.model.utility.progress.SimpleProgressListener;
 import cz.certicon.routing.view.MainUserInterface;
+import cz.certicon.routing.view.StatusEvent;
 import cz.certicon.routing.view.listeners.OnExceptionThrownListener;
 import cz.certicon.routing.view.listeners.OnExecutionListener;
 import java.io.File;
@@ -86,6 +87,11 @@ public class CliMainUserInterface extends SimpleProgressListener implements Main
     @Override
     public void onProgressUpdate( double d ) {
         System.out.println( String.format( "%.0f%%", d * 100 ) );
+    }
+
+    @Override
+    public void statusUpdate( StatusEvent statusEvent ) {
+        System.out.println( statusEvent.name() );
     }
 
     private static class ParserBean {

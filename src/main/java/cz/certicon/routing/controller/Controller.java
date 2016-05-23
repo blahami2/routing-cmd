@@ -47,6 +47,7 @@ import cz.certicon.routing.model.entity.Shortcut;
 import cz.certicon.routing.model.entity.neighbourlist.NeighborListGraphEntityFactory;
 import cz.certicon.routing.utils.measuring.TimeLogger;
 import cz.certicon.routing.view.MainUserInterface;
+import cz.certicon.routing.view.StatusEvent;
 import cz.certicon.routing.view.cli.CliMainUserInterface;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -68,7 +69,9 @@ public class Controller {
         userInterface.setOnExecutionListener( ( Input input ) -> {
             try {
                 Result result = execute( input );
+                userInterface.statusUpdate( StatusEvent.START_DISPLAYING_RESULT );
                 userInterface.displayResult( input, result );
+                userInterface.statusUpdate( StatusEvent.COMPLETED_DISPLAYING_RESULT );
             } catch ( IOException ex ) {
                 userInterface.report( ex );
             }
@@ -82,9 +85,15 @@ public class Controller {
     private Result execute( Input input ) throws IOException {
         DistanceFactory distanceFactory = input.getDistanceType().getDistanceFactory();
         GraphEntityFactory graphEntityFactory = new NeighborListGraphEntityFactory();
+        userInterface.statusUpdate( StatusEvent.START_LOADING_GRAPH );
         Graph graph = loadGraph( input, graphEntityFactory, distanceFactory );
+        userInterface.statusUpdate( StatusEvent.COMPLETED_LOADING_GRAPH );
+        userInterface.statusUpdate( StatusEvent.START_LOADING_PREPROCESSED_DATA );
         Trinity<Map<Node.Id, Integer>, List<Shortcut>, DistanceType> preprocessedData = loadPreprocessedData( input, graph, graphEntityFactory, input.getDistanceType() );
+        userInterface.statusUpdate( StatusEvent.COMPLETED_LOADING_PREPROCESSED_DATA );
+        userInterface.statusUpdate( StatusEvent.START_PREPARING_ALGORITHM );
         RoutingAlgorithm routingAlgorithm = createAlgorithm( input, graph, graphEntityFactory, distanceFactory, preprocessedData );
+        userInterface.statusUpdate( StatusEvent.COMPLETED_PREPARING_ALGORITHM );
         NodeSearcher nodeSearcher = createNodeSearcher( input );
         CoordinateReader coordinateReader = createCoordinateReader( input );
         List<ExecutionStats> executions = new ArrayList<>();
@@ -93,6 +102,7 @@ public class Controller {
 
         userInterface.setNumOfUpdates( 100 );
         userInterface.init( input.getNumberOfRuns() * input.getData().size(), 1.0 );
+        userInterface.statusUpdate( StatusEvent.START_COMPUTING );
         for ( int run = 0; run < input.getNumberOfRuns(); run++ ) {
 
             for ( int i = 0; i < input.getData().size(); i++ ) {
@@ -150,6 +160,7 @@ public class Controller {
         }
 
         GlobalOptions.MEASURE_TIME = false;
+        userInterface.statusUpdate( StatusEvent.COMPLETED_COMPUTING );
         return new Result( paths, executions );
     }
 
@@ -210,7 +221,7 @@ public class Controller {
             case CONTRACTION_HIERARCHIES_OPTIMIZED:
                 return new OptimizedContractionHierarchiesRoutingAlgorithm( graph, graphEntityFactory, distanceFactory, preprocessedData.b, preprocessedData.a );
             case CONTRACTION_HIERARCHIES_OPTIMIZED_UB:
-                return new OptimizedContractionHierarchiesRoutingAlgorithmWithUB( graph, graphEntityFactory, preprocessedData.b, preprocessedData.a );
+                return new OptimizedContractionHierarchiesRoutingAlgorithmWithUB( graph, graphEntityFactory, distanceFactory, preprocessedData.b, preprocessedData.a );
             default:
                 throw new IllegalArgumentException( "Unsupported algoritghm type: " + input.getAlgorithmType().name() );
         }

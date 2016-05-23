@@ -20,6 +20,8 @@ public interface MainUserInterface extends ProgressListener {
 
     public void setOnExceptionThrownListener( OnExceptionThrownListener onExceptionThrownListener );
 
+    public void statusUpdate( StatusEvent statusEvent );
+
     public void displayResult( Input input, Result result );
 
     public void run( String... args );
