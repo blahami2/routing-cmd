@@ -5,26 +5,35 @@
  */
 package cz.certicon.routing.model;
 
+import cz.certicon.routing.model.basic.Length;
+import cz.certicon.routing.model.basic.Time;
+
 /**
  *
  * @author Michael Blaha {@literal <michael.blaha@certicon.cz>}
  */
 public class PathStats {
 
-    private final double time;
-    private final double length;
+    private final int id;
+    private final Time time;
+    private final Length length;
 
-    public PathStats( double time, double length ) {
+    public PathStats( int id, Time time, Length length ) {
+        this.id = id;
         this.time = time;
         this.length = length;
     }
 
-    public double getTime() {
+    public Time getTime() {
         return time;
     }
 
-    public double getLength() {
+    public Length getLength() {
         return length;
+    }
+
+    public int getId() {
+        return id;
     }
 
 }

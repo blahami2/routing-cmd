@@ -1,0 +1,1 @@
+java -jar target\route-1.2-SNAPSHOT-jar-with-dependencies.jar -i "C:\Users\blaha\Documents\NetBeansProjects\RoutingCmd\input.xml" -o "C:\Users\blaha\Documents\NetBeansProjects\RoutingCmd\output.xml" -e-o "C:\Users\blaha\Documents\NetBeansProjects\RoutingCmd\execution_output.xml"

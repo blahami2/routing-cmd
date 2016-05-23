@@ -8,85 +8,74 @@ package cz.certicon.routing.data.xml;
 import cz.certicon.routing.data.DataDestination;
 import cz.certicon.routing.data.ResultWriter;
 import cz.certicon.routing.data.basic.xml.AbstractXmlWriter;
-import cz.certicon.routing.model.entity.Coordinates;
-import cz.certicon.routing.model.entity.Edge;
-import cz.certicon.routing.model.entity.Node;
+import static cz.certicon.routing.data.xml.XmlCommonTags.*;
+import cz.certicon.routing.model.Input;
+import cz.certicon.routing.model.PathStats;
+import cz.certicon.routing.model.Result;
 import cz.certicon.routing.model.entity.Path;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.xml.stream.XMLStreamException;
-import static cz.certicon.routing.data.xml.ResultTag.*;
 
 /**
  *
  * @author Michael Blaha {@literal <michael.blaha@certicon.cz>}
  */
-public class XmlResultWriter extends AbstractXmlWriter<Path> implements ResultWriter {
-
-    public XmlResultWriter( DataDestination destination ) {
-        super( destination );
-    }
-
-    private void writeCoordinate( Coordinates coordinate ) throws XMLStreamException {
-        getWriter().writeStartElement( COORDINATE.name().toLowerCase() );
-        getWriter().writeAttribute( LATITUDE.name().toLowerCase(), Double.toString( coordinate.getLatitude() ) );
-        getWriter().writeAttribute( LONGITUDE.name().toLowerCase(), Double.toString( coordinate.getLongitude() ) );
-        getWriter().writeEndElement();
-    }
+public class XmlResultWriter implements ResultWriter {
 
     @Override
-    protected void checkedWrite( Path path ) throws IOException {
-        try {
-            List<Node> sortedNodes = path.getNodes();
-            Collections.sort( sortedNodes, ( Node o1, Node o2 ) -> o1.getId().compareTo( o2.getId() ) );
-            getWriter().writeStartElement( NODES.name().toLowerCase() );
-            for ( Node node : sortedNodes ) {
-                getWriter().writeStartElement( NODE.name().toLowerCase() );
-                getWriter().writeAttribute( ID.name().toLowerCase(), Node.Id.toString( node.getId() ) );
-                getWriter().writeAttribute( LATITUDE.name().toLowerCase(), Double.toString( node.getCoordinates().getLatitude() ) );
-                getWriter().writeAttribute( LONGITUDE.name().toLowerCase(), Double.toString( node.getCoordinates().getLongitude() ) );
-                getWriter().writeEndElement();
-            }
-            getWriter().writeEndElement();
-            List<Edge> sortedEdges = path.getEdges();
-            Collections.sort( sortedEdges, ( Edge o1, Edge o2 ) -> o1.getId().compareTo( o2.getId() ) );
-            getWriter().writeStartElement( EDGES.name().toLowerCase() );
-            for ( Edge edge : sortedEdges ) {
-                getWriter().writeStartElement( EDGE.name().toLowerCase() );
-                getWriter().writeAttribute( ID.name().toLowerCase(), Edge.Id.toString( edge.getId() ) );
-                getWriter().writeAttribute( SOURCE.name().toLowerCase(), Node.Id.toString( edge.getSourceNode().getId() ) );
-                getWriter().writeAttribute( TARGET.name().toLowerCase(), Node.Id.toString( edge.getTargetNode().getId() ) );
-                getWriter().writeAttribute( SPEED_FORWARD.name().toLowerCase(), Double.toString( edge.getSpeed(  ) ) );
-                getWriter().writeAttribute( LENGTH.name().toLowerCase(), Double.toString( edge.getAttributes().getLength() ) );
-                getWriter().writeAttribute( PAID.name().toLowerCase(), Boolean.toString( edge.getAttributes().isPaid() ) );
-                getWriter().writeEndElement();
-            }
-            getWriter().writeEndElement();
-            getWriter().writeStartElement( COORDINATES.name().toLowerCase() );
-            Node currentNode = path.getSourceNode();
-            for ( Edge edge : path.getEdges() ) {
-                getWriter().writeStartElement( EDGE.name().toLowerCase() );
-                getWriter().writeAttribute( ID.name().toLowerCase(), Edge.Id.toString( edge.getId() ) );
-                List<Coordinates> coordinates = edge.getCoordinates();
-                if ( currentNode.equals( edge.getSourceNode() ) ) {
-                    for ( int i = 0; i < coordinates.size(); i++ ) {
-                        writeCoordinate( coordinates.get( i ) );
+    public void write( DataDestination destination, Input input, Result result ) throws IOException {
+        AbstractXmlWriter<Void> writer = new AbstractXmlWriter<Void>( destination ) {
+            @Override
+            protected void checkedWrite( Void out ) throws IOException {
+                /*
+<root>
+  <version>1</version>
+  <algorithm>DIJKSTRA</algorithm>
+  <priority>TIME</priority>
+  <data>
+    <output id="1">
+      <time result="155" unit="s" accuracy="98"/>
+      <length result="15515" unit="m" accuracy="99"/>
+    </output>
+    <output id="2">
+    ...
+  </data>
+</root>
+                 */
+                try {
+                    writeStringValue( VERSION, input.getVersion() );
+                    writeStringValue( ALGORITHM, input.getAlgorithmType().name() );
+                    writeStringValue( PRIORITY, input.getDistanceType().name() );
+                    getWriter().writeStartElement( DATA );
+                    for ( PathStats path : result.getPaths() ) {
+                        getWriter().writeStartElement( OUTPUT_ENTRY );
+                        getWriter().writeAttribute( ID, path.getId() + "" );
+                        getWriter().writeEmptyElement( TIME );
+                        getWriter().writeAttribute( RESULT, path.getTime().toString() );
+                        getWriter().writeAttribute( UNIT, path.getTime().getUnit() );
+                        getWriter().writeAttribute( ACCURACY, "100" );
+                        getWriter().writeEmptyElement( LENGTH );
+                        getWriter().writeAttribute( RESULT, path.getLength().toString() );
+                        getWriter().writeAttribute( UNIT, path.getLength().getUnit() );
+                        getWriter().writeAttribute( ACCURACY, "100" );
+                        getWriter().writeEndElement();
                     }
-                } else {
-                    for ( int i = coordinates.size() - 1; i >= 0; i-- ) {
-                        writeCoordinate( coordinates.get( i ) );
-                    }
+                    getWriter().writeEndElement();
+                } catch ( XMLStreamException ex ) {
+                    throw new IOException( ex );
                 }
-                currentNode = edge.getOtherNode( currentNode );
+            }
+
+            private void writeStringValue( String tag, String value ) throws XMLStreamException {
+                getWriter().writeStartElement( tag );
+                getWriter().writeCharacters( value );
                 getWriter().writeEndElement();
             }
-            getWriter().writeEndElement();
-            getWriter().flush();
-        } catch ( XMLStreamException ex ) {
-            throw new IOException( ex );
-        }
-        close();
+        };
+        writer.write( null );
+        writer.close();
     }
 
 }

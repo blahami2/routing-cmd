@@ -10,6 +10,7 @@ import cz.certicon.routing.application.algorithm.RoutingAlgorithm;
 import cz.certicon.routing.application.algorithm.algorithms.astar.StraightLineAStarRoutingAlgorithm;
 import cz.certicon.routing.application.algorithm.algorithms.dijkstra.DijkstraRoutingAlgorithm;
 import cz.certicon.routing.application.algorithm.data.number.LengthDistanceFactory;
+import cz.certicon.routing.controller.Controller;
 import cz.certicon.routing.model.Config;
 import cz.certicon.routing.data.basic.FileSource;
 import java.io.File;
@@ -17,7 +18,6 @@ import java.io.IOException;
 import cz.certicon.routing.data.ConfigReader;
 import cz.certicon.routing.data.ConfigWriter;
 import cz.certicon.routing.data.ExecutionStatsWriter;
-import cz.certicon.routing.data.ResultWriter;
 import cz.certicon.routing.data.RouteStatsWriter;
 import cz.certicon.routing.data.basic.FileDestination;
 import cz.certicon.routing.data.coordinates.CoordinateReader;
@@ -27,7 +27,7 @@ import cz.certicon.routing.data.graph.xml.XmlGraphReader;
 import cz.certicon.routing.data.xml.XmlConfigReader;
 import cz.certicon.routing.data.xml.XmlConfigWriter;
 import cz.certicon.routing.data.xml.XmlExecutionStatsWriter;
-import cz.certicon.routing.data.xml.XmlResultWriter;
+import cz.certicon.routing.data.xml.XmlPathWriter;
 import cz.certicon.routing.data.xml.XmlRouteStatsReader;
 import cz.certicon.routing.data.xml.XmlRouteStatsWriter;
 import cz.certicon.routing.model.PathPresenterEnum;
@@ -35,7 +35,7 @@ import cz.certicon.routing.model.RouteStats;
 import cz.certicon.routing.model.basic.ConfigImpl;
 import cz.certicon.routing.model.basic.Pair;
 import cz.certicon.routing.model.basic.RouteStatsImpl;
-import cz.certicon.routing.model.entity.Coordinates;
+import cz.certicon.routing.model.entity.Coordinate;
 import cz.certicon.routing.model.entity.Edge;
 import cz.certicon.routing.model.entity.Graph;
 import cz.certicon.routing.model.entity.GraphEntityFactory;
@@ -53,6 +53,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import cz.certicon.routing.data.PathWriter;
 
 /**
  *
@@ -65,11 +66,16 @@ public class Route {
      * @throws java.io.IOException
      */
     public static void main( String[] args ) throws IOException {
-        String configFilePath = System.getProperty( "user.dir" ) + File.separator + "config.xml";
-        if ( args.length > 0 ) {
-            configFilePath = args[0];
+        if ( 1 == 1 ) {
+            Controller controller = new Controller();
+            controller.run( args );
+        } else {
+            String configFilePath = System.getProperty( "user.dir" ) + File.separator + "config.xml";
+            if ( args.length > 0 ) {
+                configFilePath = args[0];
+            }
+            new Route().run( configFilePath );
         }
-        new Route().run( configFilePath );
     }
 
     private final GraphEntityFactory entityFactory = new DirectedNeighborListGraphEntityFactory();
@@ -101,8 +107,8 @@ public class Route {
                             "datafile_basename",
                             "insert/datafiles/path/here",
                             "insert/reference_route_stats/path/here",
-                            new Coordinates( 1.2345, 1.2345 ),
-                            new Coordinates( 1.2345, 1.2345 ) );
+                            new Coordinate( 1.2345, 1.2345 ),
+                            new Coordinate( 1.2345, 1.2345 ) );
                     cfg.setPathPresenterEnum( PathPresenterEnum.JXMAPVIEWER );
                     ConfigWriter configWriter = new XmlConfigWriter( new FileDestination( configFile ) );
                     configWriter.open();
@@ -196,7 +202,7 @@ public class Route {
         TimeMeasurement timeMeasurement = new TimeMeasurement();
         timeMeasurement.start();
         Path route = null; //= routingAlgorithm.route( new Coordinates( config.getSource().getLatitude(), config.getSource().getLongitude() ),
-                //new Coordinates( config.getDestination().getLatitude(), config.getDestination().getLongitude() ) );
+        //new Coordinates( config.getDestination().getLatitude(), config.getDestination().getLongitude() ) );
         timeMeasurement.stop();
         if ( route == null ) {
             System.out.println( "Path between the two nodes has not been found. Exiting." );
@@ -208,8 +214,8 @@ public class Route {
         }
         System.out.println( "Done routing. Exporting results to directory: '" + outputDir.getAbsolutePath() + "'" );
         File resultFile = new File( outputDir.getAbsolutePath() + File.separator + "result.xml" );
-        ResultWriter resultWriter = new XmlResultWriter( new FileDestination( resultFile ) );
-        Map<Edge, List<Coordinates>> coordinates = coordReader.read( new HashSet<>( route.getEdges() ) );
+        PathWriter resultWriter = new XmlPathWriter( new FileDestination( resultFile ) );
+        Map<Edge, List<Coordinate>> coordinates = coordReader.read( new HashSet<>( route.getEdges() ) );
         coordReader.close();
         GraphUtils.fillWithCoordinates( route.getEdges(), coordinates );
         resultWriter.write( route );
@@ -218,7 +224,7 @@ public class Route {
         RouteStats actualRouteStats = new RouteStatsImpl( (long) route.getLength(), (long) route.getTime(), 0 );
         routeStatsWriter.write( actualRouteStats );
         File executionStatsFile = new File( outputDir.getAbsolutePath() + File.separator + "execution_statistics.xml" );
-        ExecutionStatsWriter executionStatsWriter = new XmlExecutionStatsWriter( new FileDestination( executionStatsFile ) );
+//        ExecutionStatsWriter executionStatsWriter = new XmlExecutionStatsWriter( new FileDestination( executionStatsFile ) );
         double accuracy = RouteStatsComparator.calculateAccuracy( new XmlRouteStatsReader( new FileSource( refRouteStatsFile ) ).read( null ), actualRouteStats );
 //        executionStatsWriter.write( new ExecutionStatsImpl( timeMeasurement.getTimeElapsed(), 0, accuracy ) );
 

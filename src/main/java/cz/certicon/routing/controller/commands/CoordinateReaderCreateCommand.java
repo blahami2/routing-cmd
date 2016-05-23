@@ -12,7 +12,7 @@ import cz.certicon.routing.model.basic.Pair;
 import java.util.Properties;
 
 /**
- *
+ * @deprecated 
  * @author Michael Blaha {@literal <michael.blaha@certicon.cz>}
  */
 public class CoordinateReaderCreateCommand implements Command<Pair<InputType,Properties>,CoordinateReader> {

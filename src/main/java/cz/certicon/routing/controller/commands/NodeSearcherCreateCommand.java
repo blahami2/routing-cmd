@@ -13,6 +13,7 @@ import java.util.Properties;
 
 /**
  *
+ * @deprecated 
  * @author Michael Blaha {@literal <michael.blaha@certicon.cz>}
  */
 public class NodeSearcherCreateCommand implements Command<Pair<InputType, Properties>, NodeSearcher> {

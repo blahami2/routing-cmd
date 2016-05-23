@@ -16,6 +16,7 @@ import java.util.Properties;
 
 /**
  *
+ * @deprecated 
  * @author Michael Blaha {@literal <michael.blaha@certicon.cz>}
  */
 public class GraphLoadCommand implements Command<Quaternion<InputType, Properties, GraphEntityFactory, DistanceFactory>, Graph> {

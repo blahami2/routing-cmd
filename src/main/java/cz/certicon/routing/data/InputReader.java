@@ -6,11 +6,13 @@
 package cz.certicon.routing.data;
 
 import cz.certicon.routing.model.Input;
+import java.io.IOException;
 
 /**
  *
  * @author Michael Blaha {@literal <michael.blaha@certicon.cz>}
  */
-public interface InputReader extends Reader<DataSource, Input> {
+public interface InputReader {
 
+    public Input read( DataSource in ) throws IOException;
 }

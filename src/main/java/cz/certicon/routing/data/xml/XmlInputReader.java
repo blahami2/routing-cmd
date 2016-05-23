@@ -5,25 +5,30 @@
  */
 package cz.certicon.routing.data.xml;
 
+import cz.certicon.routing.application.algorithm.AlgorithmType;
 import cz.certicon.routing.data.DataSource;
 import cz.certicon.routing.data.InputReader;
+import cz.certicon.routing.data.DistanceType;
+import static cz.certicon.routing.data.xml.XmlCommonTags.*;
 import cz.certicon.routing.model.Input;
 import cz.certicon.routing.model.InputType;
+import cz.certicon.routing.model.basic.Pair;
+import cz.certicon.routing.model.basic.Trinity;
+import cz.certicon.routing.model.entity.Coordinate;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
-import org.w3c.dom.Node;
-import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 /**
@@ -31,13 +36,6 @@ import org.xml.sax.SAXException;
  * @author Michael Blaha {@literal <michael.blaha@certicon.cz>}
  */
 public class XmlInputReader implements InputReader {
-
-    private boolean isOpen = false;
-
-    @Override
-    public void open() throws IOException {
-        isOpen = true;
-    }
 
     @Override
     public Input read( DataSource in ) throws IOException {
@@ -47,25 +45,57 @@ public class XmlInputReader implements InputReader {
             Document doc = dBuilder.parse( in.getInputStream() );
             doc.getDocumentElement().normalize();
             XPath xPath = XPathFactory.newInstance().newXPath();
+            ValueReader valueReader = new ValueReader( doc, xPath );
+            String root = "/" + ROOT + "/";
+            String version = valueReader.getValue( root + VERSION, XPathConstants.STRING );
+            InputType inputType = InputType.valueOf( valueReader.getValue( root + INPUT_TYPE, XPathConstants.STRING ) );
+            String propertiesFilePath = valueReader.getValue( root + INPUT_PROPERTIES, XPathConstants.STRING );
+            Properties properties = new Properties();
+            properties.load( new FileInputStream( propertiesFilePath ) );
 
-            String version = (String) xPath.compile( "/root/version" ).evaluate( doc, XPathConstants.STRING );
-            InputType inputType = InputType.valueOf( (String) xPath.compile( "/root/input_type" ).evaluate( doc, XPathConstants.STRING ) );
-
+            int runs = valueReader.<Double>getValue( root + RUNS, XPathConstants.NUMBER ).intValue();
+            AlgorithmType algorithmType = AlgorithmType.valueOf( valueReader.getValue( root + ALGORITHM, XPathConstants.STRING ) );
+            DistanceType distanceType = DistanceType.valueOf( valueReader.getValue( root + PRIORITY, XPathConstants.STRING ) );
+            NodeList ids = valueReader.getValue( "//" + DATA + "/" + INPUT_ENTRY + "/@" + ID, XPathConstants.NODESET );
+            NodeList fromLatitudes = valueReader.getValue( "//" + FROM + "/@" + LATITUDE, XPathConstants.NODESET );
+            NodeList fromLongitudes = valueReader.getValue( "//" + FROM + "/@" + LONGITUDE, XPathConstants.NODESET );
+            NodeList toLatitudes = valueReader.getValue( "//" + TO + "/@" + LATITUDE, XPathConstants.NODESET );
+            NodeList toLongitudes = valueReader.getValue( "//" + TO + "/@" + LONGITUDE, XPathConstants.NODESET );
+            if ( fromLatitudes.getLength() != fromLongitudes.getLength() || toLatitudes.getLength() != toLongitudes.getLength() || fromLatitudes.getLength() != toLatitudes.getLength() ) {
+                throw new IOException( "Invalid input: wrong counts (|" + FROM + "@" + LATITUDE + "|=" + fromLatitudes.getLength() + ", |" + FROM + "@" + LONGITUDE + "|=" + fromLongitudes.getLength() + ", |" + TO + "@" + LATITUDE + "|=" + toLatitudes.getLength() + ", |" + TO + "@" + LONGITUDE + "|=" + toLongitudes.getLength() );
+            }
+            List<Trinity<Integer, Coordinate, Coordinate>> data = new ArrayList<>();
+            for ( int i = 0; i < fromLatitudes.getLength(); i++ ) {
+                int id = Integer.parseInt( ids.item( i ).getNodeValue() );
+                double fromLatitude = Double.parseDouble( fromLatitudes.item( i ).getNodeValue() );
+                double fromLongitude = Double.parseDouble( fromLongitudes.item( i ).getNodeValue() );
+                double toLatitude = Double.parseDouble( toLatitudes.item( i ).getNodeValue() );
+                double toLongitude = Double.parseDouble( toLongitudes.item( i ).getNodeValue() );
+                data.add( new Trinity<>(
+                        id,
+                        new Coordinate( fromLatitude, fromLongitude ),
+                        new Coordinate( toLatitude, toLongitude )
+                ) );
+            }
+            return new Input( runs, version, inputType, properties, algorithmType, distanceType, data );
         } catch ( ParserConfigurationException | SAXException | XPathExpressionException | IllegalArgumentException ex ) {
             throw new IOException( ex );
         }
-
-        throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
     }
 
-    @Override
-    public void close() throws IOException {
-        isOpen = false;
-    }
+    private static class ValueReader {
 
-    @Override
-    public boolean isOpen() {
-        return isOpen;
+        private final Document document;
+        private final XPath xPath;
+
+        public ValueReader( Document document, XPath xPath ) {
+            this.document = document;
+            this.xPath = xPath;
+        }
+
+        public <T> T getValue( String path, XPathConstants xpathConstant ) throws XPathExpressionException {
+            return (T) xPath.compile( path ).evaluate( document, xpathConstant.getXPathConstant() );
+        }
     }
 
 }

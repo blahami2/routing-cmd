@@ -5,37 +5,45 @@
  */
 package cz.certicon.routing.model;
 
+import cz.certicon.routing.model.basic.Time;
+
 /**
  *
  * @author Michael Blaha {@literal <michael.blaha@certicon.cz>}
  */
 public class ExecutionStats {
 
-    private final long nodeSearchTime;
-    private final long routeTime;
-    private final long routeBuildingTime;
-    private final long pathLoadTime;
+    private final int id;
+    private final Time nodeSearchTime;
+    private final Time routeTime;
+    private final Time routeBuildingTime;
+    private final Time pathLoadTime;
 
-    public ExecutionStats( long nodeSearchTime, long routeTime, long routeBuildingTime, long pathLoadTime ) {
+    public ExecutionStats( int id, Time nodeSearchTime, Time routeTime, Time routeBuildingTime, Time pathLoadTime ) {
+        this.id = id;
         this.nodeSearchTime = nodeSearchTime;
         this.routeTime = routeTime;
         this.routeBuildingTime = routeBuildingTime;
         this.pathLoadTime = pathLoadTime;
     }
 
-    public long getNodeSearchTime() {
+    public int getId() {
+        return id;
+    }
+
+    public Time getNodeSearchTime() {
         return nodeSearchTime;
     }
 
-    public long getRouteTime() {
+    public Time getRouteTime() {
         return routeTime;
     }
 
-    public long getRouteBuildingTime() {
+    public Time getRouteBuildingTime() {
         return routeBuildingTime;
     }
 
-    public long getPathLoadTime() {
+    public Time getPathLoadTime() {
         return pathLoadTime;
     }
 }

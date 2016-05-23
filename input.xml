@@ -1,0 +1,171 @@
+<root>
+  <version>1</version>
+  <runs>100</runs>
+  <input_type>SQLITE</input_type>
+  <input_properties>C:\Users\blaha\Documents\NetBeansProjects\RoutingCmd\routing.properties</input_properties>
+  <reference_output>path/reference_output.xml</reference_output>
+  <algorithm>DIJKSTRA</algorithm>
+  <priority>TIME</priority>
+  <data>
+    <input id="1">
+      <from latitude="50.2131106" longitude="12.2031372"/>
+      <to latitude="49.8518775" longitude="18.3700722"/>
+    </input> 
+    <input id="2">
+      <from latitude="50.85554" longitude="15.1025219"/>
+      <to latitude="48.7282861" longitude="14.3774244"/>   
+    </input>
+    <input id="3">
+      <from latitude="50.6297086" longitude="13.8929428"/>
+      <to latitude="48.9705908" longitude="16.6285386"/>   
+    </input>
+    <input id="4">
+      <from latitude="49.8132617" longitude="18.208165"/>
+      <to latitude="49.4396428" longitude="12.9182481"/>   
+    </input>
+    <input id="5">
+      <from latitude="49.5651561" longitude="18.6715731"/>
+      <to latitude="50.4022433" longitude="13.4805328"/>   
+    </input>
+    <input id="6">
+      <from latitude="50.2112683" longitude="13.4401403"/>
+      <to latitude="49.8407228" longitude="18.2521519"/>   
+    </input>
+    <input id="7">
+      <from latitude="49.3216436" longitude="13.1591686"/>
+      <to latitude="50.21568" longitude="17.5262342"/>     
+    </input>
+    <input id="8">
+      <from latitude="48.66517" longitude="14.1962975"/>
+      <to latitude="50.6804125" longitude="15.4981772"/>  
+    </input>
+    <input id="9">
+      <from latitude="48.8002636" longitude="16.3277461"/>
+      <to latitude="50.5803619" longitude="13.5427119"/>  
+    </input>
+    <input id="10">
+      <from latitude="49.0140886" longitude="17.5665897"/>
+      <to latitude="50.1782992" longitude="12.6721806"/>   
+    </input>
+    <input id="11">
+      <from latitude="49.5556911" longitude="18.5975017"/>
+      <to latitude="49.7370897" longitude="12.8791181"/>    
+    </input>
+    <input id="12">
+      <from latitude="50.1732828" longitude="17.1996078"/>
+      <to latitude="49.3214425" longitude="13.22805"/>     
+    </input>
+    <input id="13">
+      <from latitude="50.0492594" longitude="14.3280578"/>
+      <to latitude="50.1087458" longitude="14.5046975"/>   
+    </input>
+    <input id="14">
+      <from latitude="50.1050397" longitude="14.3747344"/>
+      <to latitude="50.0432333" longitude="14.4535269"/>   
+    </input>
+    <input id="15">
+      <from latitude="50.1130831" longitude="14.4933847"/>
+      <to latitude="50.0377278" longitude="14.4223169"/>     
+    </input>
+    <input id="16">
+      <from latitude="50.1029583" longitude="14.3886239"/>
+      <to latitude="50.0480944" longitude="14.4792611"/>    
+    </input>
+    <input id="17">
+      <from latitude="50.1123644" longitude="14.5217556"/>
+      <to latitude="50.0548664" longitude="14.3543856"/>    
+    </input>
+    <input id="18">
+      <from latitude="50.1070903" longitude="14.3518094"/>
+      <to latitude="50.0522311" longitude="14.5330839"/>     
+    </input>
+    <input id="19">
+      <from latitude="50.1058411" longitude="14.5419825"/>
+      <to latitude="50.0566017" longitude="14.3478336"/>    
+    </input>
+    <input id="20">
+      <from latitude="50.1218256" longitude="14.4616022"/>
+      <to latitude="50.0392081" longitude="14.4343081"/>   
+    </input>
+    <input id="21">
+      <from latitude="49.2220972" longitude="16.5500786"/>
+      <to latitude="49.2046039" longitude="16.6922142"/>   
+    </input>
+    <input id="22">
+      <from latitude="49.2152083" longitude="16.7021567"/>
+      <to latitude="49.1795372" longitude="16.5244872"/>    
+    </input>
+    <input id="23">
+      <from latitude="49.2410267" longitude="16.5825417"/>
+      <to latitude="49.1622881" longitude="16.63507"/>      
+    </input>
+    <input id="24">
+      <from latitude="49.1647092" longitude="16.5680144"/>
+      <to latitude="49.222595" longitude="16.6370225"/>     
+    </input>
+    <input id="25">
+      <from latitude="49.2260714" longitude="16.5238042"/>
+      <to latitude="49.1739136" longitude="16.6870542"/>      
+    </input>
+    <input id="26">
+      <from latitude="50.0994514" longitude="14.4221767"/>
+      <to latitude="50.1014542" longitude="14.4176386"/>    
+    </input>
+    <input id="27">
+      <from latitude="50.0991986" longitude="14.4222764"/>
+      <to latitude="50.1014283" longitude="14.4177703"/>     
+    </input>
+    <input id="28">
+      <from latitude="50.0995322" longitude="14.4206764"/>
+      <to latitude="50.0998833" longitude="14.4209661"/>    
+    </input>
+    <input id="29">
+      <from latitude="50.1002569" longitude="14.4215325"/>
+      <to latitude="50.0998853" longitude="14.4209211"/>   
+    </input>
+    <input id="30">
+      <from latitude="50.0701086" longitude="14.4013675"/>
+      <to latitude="50.0718233" longitude="14.3995972"/>   
+    </input>
+    <input id="31">
+      <from latitude="50.0691225" longitude="14.4016094"/>
+      <to latitude="50.0718494" longitude="14.3990989"/>   
+    </input>
+    <input id="32">
+      <from latitude="50.0683972" longitude="14.4019406"/>
+      <to latitude="50.0717442" longitude="14.3998161"/>  
+    </input>
+    <input id="33">
+      <from latitude="50.06832" longitude="14.4021356"/>
+      <to latitude="50.0718319" longitude="14.3998825"/>   
+    </input>
+    <input id="34">
+      <from latitude="50.0658814" longitude="14.4032797"/>
+      <to latitude="50.0718519" longitude="14.3998036"/>   
+    </input>
+    <input id="35">
+      <from latitude="50.0773011" longitude="14.4260219"/>
+      <to latitude="50.0763097" longitude="14.4291764"/>   
+    </input>
+    <input id="36">
+      <from latitude="50.0757861" longitude="14.4200989"/>
+      <to latitude="50.0764469" longitude="14.4192619"/>   
+    </input>
+    <input id="37">
+      <from latitude="50.0794414" longitude="14.4301353"/>
+      <to latitude="50.0784497" longitude="14.4316158"/>  
+    </input>
+    <input id="38">
+      <from latitude="50.0740642" longitude="14.4408889"/>
+      <to latitude="50.0753036" longitude="14.4407603"/>  
+    </input>
+    <input id="39">
+      <from latitude="50.0419986" longitude="14.4650483"/>
+      <to latitude="50.0416472" longitude="14.4702625"/>   
+    </input>
+    <input id="40">
+      <from latitude="50.0386819" longitude="14.4660839"/>
+      <to latitude="50.0408525" longitude="14.4692381"/>    
+    </input>
+  </data>
+</root>

@@ -5,11 +5,15 @@
  */
 package cz.certicon.routing.data;
 
-import cz.certicon.routing.model.entity.Path;
+import cz.certicon.routing.model.Input;
+import cz.certicon.routing.model.Result;
+import java.io.IOException;
 
 /**
  *
  * @author Michael Blaha {@literal <michael.blaha@certicon.cz>}
  */
-public interface ResultWriter extends Writer<Path> {
+public interface ResultWriter {
+
+    public void write( DataDestination destination, Input input, Result result ) throws IOException;
 }

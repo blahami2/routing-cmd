@@ -5,7 +5,7 @@
  */
 package cz.certicon.routing.model;
 
-import cz.certicon.routing.model.entity.Coordinates;
+import cz.certicon.routing.model.entity.Coordinate;
 
 /**
  *
@@ -21,7 +21,7 @@ public interface Config {
 
     public String getReferenceRouteStatsPath();
     
-    public Coordinates getSource();
+    public Coordinate getSource();
 
-    public Coordinates getDestination();
+    public Coordinate getDestination();
 }
