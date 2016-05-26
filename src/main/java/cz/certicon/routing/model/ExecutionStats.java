@@ -18,13 +18,17 @@ public class ExecutionStats {
     private final Time routeTime;
     private final Time routeBuildingTime;
     private final Time pathLoadTime;
+    private final int examinedNodes;
+    private final int examinedEdges;
 
-    public ExecutionStats( int id, Time nodeSearchTime, Time routeTime, Time routeBuildingTime, Time pathLoadTime ) {
+    public ExecutionStats( int id, Time nodeSearchTime, Time routeTime, Time routeBuildingTime, Time pathLoadTime, int examinedNodes, int examinedEdges ) {
         this.id = id;
         this.nodeSearchTime = nodeSearchTime;
         this.routeTime = routeTime;
         this.routeBuildingTime = routeBuildingTime;
         this.pathLoadTime = pathLoadTime;
+        this.examinedNodes = examinedNodes;
+        this.examinedEdges = examinedEdges;
     }
 
     public int getId() {
@@ -45,5 +49,13 @@ public class ExecutionStats {
 
     public Time getPathLoadTime() {
         return pathLoadTime;
+    }
+
+    public int getExaminedNodes() {
+        return examinedNodes;
+    }
+
+    public int getExaminedEdges() {
+        return examinedEdges;
     }
 }

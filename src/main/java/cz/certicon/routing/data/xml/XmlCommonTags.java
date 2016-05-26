@@ -19,6 +19,7 @@ public interface XmlCommonTags {
     public static final String ALGORITHM = "algorithm";
     public static final String PRIORITY = "priority";
     public static final String AVERAGE = "average";
+    public static final String VALUE = "value";
     public static final String DATA = "data";
     public static final String FROM = "from";
     public static final String TO = "to";
@@ -37,4 +38,6 @@ public interface XmlCommonTags {
     public static final String TIME_ROUTING = "routing";
     public static final String TIME_ROUTE_BUILDING = "route_building";
     public static final String TIME_PATH_LOADING = "path_loading";
+    public static final String STAT_NODES_EXAMINED = "nodes_examined";
+    public static final String STAT_EDGES_EXAMINED = "edges_examined";
 }

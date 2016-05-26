@@ -11,10 +11,8 @@ import cz.certicon.routing.data.basic.xml.AbstractXmlWriter;
 import static cz.certicon.routing.data.xml.XmlCommonTags.*;
 import cz.certicon.routing.model.ExecutionStats;
 import cz.certicon.routing.model.Input;
-import cz.certicon.routing.model.PathStats;
 import cz.certicon.routing.model.Result;
 import cz.certicon.routing.model.basic.Time;
-import cz.certicon.routing.model.basic.TimeUnits;
 import java.io.IOException;
 import javax.xml.stream.XMLStreamException;
 
@@ -51,11 +49,15 @@ public class XmlExecutionStatsWriter implements ExecutionStatsWriter {
                 Time route = new Time( TIME_UNITS, 0 );
                 Time routeBuild = new Time( TIME_UNITS, 0 );
                 Time pathLoad = new Time( TIME_UNITS, 0 );
+                int examinedNodes = 0;
+                int examinedEdges = 0;
                 for ( ExecutionStats execution : result.getExecutions() ) {
                     nodeSearch = nodeSearch.add( execution.getNodeSearchTime() );
                     route = route.add( execution.getRouteTime() );
                     routeBuild = routeBuild.add( execution.getRouteBuildingTime() );
                     pathLoad = pathLoad.add( execution.getPathLoadTime() );
+                    examinedNodes += execution.getExaminedNodes();
+                    examinedEdges += execution.getExaminedEdges();
                 }
                 // write
                 try {
@@ -67,6 +69,8 @@ public class XmlExecutionStatsWriter implements ExecutionStatsWriter {
                     writeTime( TIME_ROUTING, route.divide( result.getExecutions().size() ) );
                     writeTime( TIME_ROUTE_BUILDING, routeBuild.divide( result.getExecutions().size() ) );
                     writeTime( TIME_PATH_LOADING, pathLoad.divide( result.getExecutions().size() ) );
+                    writeValue( STAT_NODES_EXAMINED, examinedNodes / result.getExecutions().size() );
+                    writeValue( STAT_EDGES_EXAMINED, examinedEdges / result.getExecutions().size() );
                     getWriter().writeStartElement( DATA );
                     for ( ExecutionStats execution : result.getExecutions() ) {
                         getWriter().writeStartElement( OUTPUT_ENTRY );
@@ -75,6 +79,8 @@ public class XmlExecutionStatsWriter implements ExecutionStatsWriter {
                         writeTime( TIME_ROUTING, execution.getRouteTime() );
                         writeTime( TIME_ROUTE_BUILDING, execution.getRouteBuildingTime() );
                         writeTime( TIME_PATH_LOADING, execution.getPathLoadTime() );
+                        writeValue( STAT_NODES_EXAMINED, execution.getExaminedNodes() );
+                        writeValue( STAT_EDGES_EXAMINED, execution.getExaminedEdges() );
                         getWriter().writeEndElement();
                     }
                     getWriter().writeEndElement();
@@ -93,6 +99,12 @@ public class XmlExecutionStatsWriter implements ExecutionStatsWriter {
                 getWriter().writeEmptyElement( tag );
                 getWriter().writeAttribute( TIME, time.toString() );
                 getWriter().writeAttribute( UNIT, time.getUnit() );
+            }
+
+            private void writeValue( String tag, int value ) throws XMLStreamException {
+                getWriter().writeEmptyElement( tag );
+                getWriter().writeAttribute( VALUE, Integer.toString( value ) );
+                getWriter().writeAttribute( UNIT, "#" );
             }
         };
         writer.write( null );

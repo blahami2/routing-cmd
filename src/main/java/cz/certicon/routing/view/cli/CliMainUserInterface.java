@@ -19,6 +19,7 @@ import cz.certicon.routing.data.xml.XmlInputReader;
 import cz.certicon.routing.data.xml.XmlResultWriter;
 import cz.certicon.routing.model.Input;
 import cz.certicon.routing.model.Result;
+import cz.certicon.routing.model.basic.TimeUnits;
 import cz.certicon.routing.model.basic.Trinity;
 import cz.certicon.routing.model.entity.Coordinate;
 import cz.certicon.routing.model.utility.progress.SimpleProgressListener;
@@ -91,14 +92,15 @@ public class CliMainUserInterface extends SimpleProgressListener implements Main
 //        }, ( value ) -> {
 //            return (double) value.getTime().getTime();
 //        } );
+        TimeUnits timeUnits = TimeUnits.MICROSECONDS;
         builder.addColumns( result.getExecutions(), ( value ) -> {
-            return (double) value.getNodeSearchTime().getTime();
+            return (double) value.getNodeSearchTime().getTime( timeUnits );
         }, ( value ) -> {
-            return (double) value.getRouteTime().getTime();
+            return (double) value.getRouteTime().getTime( timeUnits );
         }, ( value ) -> {
-            return (double) value.getRouteBuildingTime().getTime();
+            return (double) value.getRouteBuildingTime().getTime( timeUnits );
         }, ( value ) -> {
-            return (double) value.getPathLoadTime().getTime();
+            return (double) value.getPathLoadTime().getTime( timeUnits );
         } );
         ITable<Double> table = builder.build();
         ITableViewer tableViewer = new CliTableViewer();
@@ -116,15 +118,13 @@ public class CliMainUserInterface extends SimpleProgressListener implements Main
         for ( XYSeries ser : series ) {
             dataset.addSeries( ser );
         }
-        JFreeChart chart = ChartFactory.createXYStepChart( "Result", "id", "ns", dataset, PlotOrientation.VERTICAL, true, true, false );
-        NumberAxis rangeAxis = (NumberAxis) chart.getXYPlot().getRangeAxis();
-        rangeAxis.setStandardTickUnits( NumberAxis.createIntegerTickUnits() );
+        JFreeChart chart = ChartFactory.createScatterPlot( "Result", "id", timeUnits.getUnit(), dataset, PlotOrientation.VERTICAL, true, true, false );
 
         DOMImplementation domImpl = GenericDOMImplementation.getDOMImplementation();
         Document document = domImpl.createDocument( null, "svg", null );
         SVGGraphics2D svgGenerator = new SVGGraphics2D( document );
         svgGenerator.getGeneratorContext().setPrecision( 6 );
-        chart.draw( svgGenerator, new Rectangle2D.Double( 0, 0, 600, 800 ), null );
+        chart.draw( svgGenerator, new Rectangle2D.Double( 0, 0, 1000, 800 ), null );
         boolean useCSS = true;
         Writer out;
         try {

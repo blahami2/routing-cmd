@@ -45,6 +45,7 @@ import cz.certicon.routing.model.entity.Node;
 import cz.certicon.routing.model.entity.Path;
 import cz.certicon.routing.model.entity.Shortcut;
 import cz.certicon.routing.model.entity.neighbourlist.NeighborListGraphEntityFactory;
+import cz.certicon.routing.utils.measuring.StatsLogger;
 import cz.certicon.routing.utils.measuring.TimeLogger;
 import cz.certicon.routing.view.MainUserInterface;
 import cz.certicon.routing.view.StatusEvent;
@@ -99,6 +100,7 @@ public class Controller {
         List<ExecutionStats> executions = new ArrayList<>();
         List<PathStats> paths = new ArrayList<>();
         GlobalOptions.MEASURE_TIME = true;
+        GlobalOptions.MEASURE_STATS = true;
 
         userInterface.setNumOfUpdates( 100 );
         userInterface.init( input.getNumberOfRuns() * input.getData().size(), 1.0 );
@@ -133,7 +135,9 @@ public class Controller {
                                 TimeLogger.getTimeMeasurement( TimeLogger.Event.NODE_SEARCHING ).getTime(),
                                 TimeLogger.getTimeMeasurement( TimeLogger.Event.ROUTING ).getTime(),
                                 TimeLogger.getTimeMeasurement( TimeLogger.Event.ROUTE_BUILDING ).getTime(),
-                                TimeLogger.getTimeMeasurement( TimeLogger.Event.PATH_LOADING ).getTime() ) );
+                                TimeLogger.getTimeMeasurement( TimeLogger.Event.PATH_LOADING ).getTime(),
+                                StatsLogger.getValue( StatsLogger.Statistic.NODES_EXAMINED ),
+                                StatsLogger.getValue( StatsLogger.Statistic.EDGES_EXAMINED ) ) );
                     } else {
                         ExecutionStats last = executions.get( i );
                         executions.set( i, new ExecutionStats(
@@ -141,7 +145,9 @@ public class Controller {
                                 TimeLogger.getTimeMeasurement( TimeLogger.Event.NODE_SEARCHING ).getTime().add( last.getNodeSearchTime() ),
                                 TimeLogger.getTimeMeasurement( TimeLogger.Event.ROUTING ).getTime().add( last.getRouteTime() ),
                                 TimeLogger.getTimeMeasurement( TimeLogger.Event.ROUTE_BUILDING ).getTime().add( last.getRouteBuildingTime() ),
-                                TimeLogger.getTimeMeasurement( TimeLogger.Event.PATH_LOADING ).getTime().add( last.getPathLoadTime() ) ) );
+                                TimeLogger.getTimeMeasurement( TimeLogger.Event.PATH_LOADING ).getTime().add( last.getPathLoadTime() ),
+                                StatsLogger.getValue( StatsLogger.Statistic.NODES_EXAMINED ) + last.getExaminedNodes(),
+                                StatsLogger.getValue( StatsLogger.Statistic.EDGES_EXAMINED ) + last.getExaminedEdges() ) );
                     }
                 } catch ( IOException ex ) {
                     Logger.getLogger( ExecuteCommand.class.getName() ).log( Level.SEVERE, null, ex );
@@ -156,7 +162,9 @@ public class Controller {
                     last.getNodeSearchTime().divide( input.getNumberOfRuns() ),
                     last.getRouteTime().divide( input.getNumberOfRuns() ),
                     last.getRouteBuildingTime().divide( input.getNumberOfRuns() ),
-                    last.getPathLoadTime().divide( input.getNumberOfRuns() ) ) );
+                    last.getPathLoadTime().divide( input.getNumberOfRuns() ),
+                    last.getExaminedNodes() / input.getNumberOfRuns(),
+                    last.getExaminedEdges() / input.getNumberOfRuns() ) );
         }
 
         GlobalOptions.MEASURE_TIME = false;
