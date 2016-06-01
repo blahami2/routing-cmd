@@ -6,8 +6,7 @@
 package cz.certicon.routing.model;
 
 import cz.certicon.routing.application.algorithm.AlgorithmType;
-import cz.certicon.routing.data.DistanceType;
-import cz.certicon.routing.model.basic.Pair;
+import cz.certicon.routing.memsensitive.model.entity.DistanceType;
 import cz.certicon.routing.model.basic.Trinity;
 import cz.certicon.routing.model.entity.Coordinate;
 import java.util.List;
