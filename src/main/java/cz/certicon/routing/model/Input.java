@@ -24,15 +24,17 @@ public class Input {
     private final Properties properties;
     private final AlgorithmType algorithmType;
     private final DistanceType distanceType;
+    private final ReferenceOutput referenceOutput;
     private final List<Trinity<Integer, Coordinate, Coordinate>> data;
 
-    public Input( int numberOfRuns, String version, InputType inputType, Properties properties, AlgorithmType algorithmType, DistanceType distanceType, List<Trinity<Integer, Coordinate, Coordinate>> data ) {
+    public Input( int numberOfRuns, String version, InputType inputType, Properties properties, AlgorithmType algorithmType, DistanceType distanceType, ReferenceOutput referenceOutput, List<Trinity<Integer, Coordinate, Coordinate>> data ) {
         this.numberOfRuns = numberOfRuns;
         this.version = version;
         this.inputType = inputType;
         this.properties = properties;
         this.algorithmType = algorithmType;
         this.distanceType = distanceType;
+        this.referenceOutput = referenceOutput;
         this.data = data;
     }
 
@@ -62,6 +64,10 @@ public class Input {
 
     public String getVersion() {
         return version;
+    }
+
+    public ReferenceOutput getReferenceOutput() {
+        return referenceOutput;
     }
 
     @Override

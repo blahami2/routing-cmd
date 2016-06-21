@@ -9,9 +9,11 @@ import cz.certicon.routing.GlobalOptions;
 import cz.certicon.routing.application.algorithm.AlgorithmType;
 import cz.certicon.routing.memsensitive.algorithm.Route;
 import cz.certicon.routing.memsensitive.algorithm.RouteBuilder;
+import cz.certicon.routing.memsensitive.algorithm.RouteNotFoundException;
 import cz.certicon.routing.memsensitive.algorithm.RoutingAlgorithm;
 import cz.certicon.routing.memsensitive.algorithm.algorithms.AstarRoutingAlgorithm;
 import cz.certicon.routing.memsensitive.algorithm.algorithms.ContractionHierarchiesRoutingAlgorithm;
+import cz.certicon.routing.memsensitive.algorithm.algorithms.ContractionHierarchiesUbRoutingAlgorithm;
 import cz.certicon.routing.memsensitive.algorithm.algorithms.DijkstraRoutingAlgorithm;
 import cz.certicon.routing.memsensitive.algorithm.common.SimpleRouteBuilder;
 import cz.certicon.routing.memsensitive.data.ch.ContractionHierarchiesDataRW;
@@ -19,11 +21,13 @@ import cz.certicon.routing.memsensitive.data.ch.NotPreprocessedException;
 import cz.certicon.routing.memsensitive.data.ch.sqlite.SqliteContractionHierarchiesRW;
 import cz.certicon.routing.memsensitive.data.graph.GraphReader;
 import cz.certicon.routing.memsensitive.data.graph.sqlite.SqliteGraphReader;
+import cz.certicon.routing.memsensitive.data.nodesearch.EvaluableOnlyException;
 import cz.certicon.routing.memsensitive.data.nodesearch.NodeSearcher;
 import cz.certicon.routing.memsensitive.data.nodesearch.sqlite.SqliteNodeSearcher;
 import cz.certicon.routing.memsensitive.data.path.PathReader;
 import cz.certicon.routing.memsensitive.data.path.sqlite.SqlitePathReader;
 import cz.certicon.routing.memsensitive.model.entity.Graph;
+import cz.certicon.routing.memsensitive.model.entity.NodeSet;
 import cz.certicon.routing.memsensitive.model.entity.Path;
 import cz.certicon.routing.memsensitive.model.entity.PathBuilder;
 import cz.certicon.routing.memsensitive.model.entity.ch.PreprocessedData;
@@ -51,9 +55,12 @@ import cz.certicon.routing.view.MainUserInterface;
 import cz.certicon.routing.view.StatusEvent;
 import cz.certicon.routing.view.cli.CliMainUserInterface;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -98,13 +105,13 @@ public class Controller {
         RoutingAlgorithm<Graph> routingAlgorithm = createAlgorithm( input, graph, preprocessedData );
         userInterface.statusUpdate( StatusEvent.COMPLETED_PREPARING_ALGORITHM );
         NodeSearcher nodeSearcher = createNodeSearcher( input );
-        PathReader pathReader = createPathReader( input );
+        PathReader<Graph> pathReader = createPathReader( input );
         PathBuilder<Path, Graph> pathBuilder = new SimplePathBuilder();
         List<ExecutionStats> executions = new ArrayList<>();
         List<PathStats> paths = new ArrayList<>();
         GlobalOptions.MEASURE_TIME = true;
         GlobalOptions.MEASURE_STATS = true;
-        NodeSetBuilderFactory<Map<Integer, Float>> nsbFactory = new SimpleNodeSetBuilderFactory( graph, input.getDistanceType() );
+        NodeSetBuilderFactory<NodeSet<Graph>> nsbFactory = new SimpleNodeSetBuilderFactory( graph, input.getDistanceType() );
         RouteBuilder<Route, Graph> routeBuilder = new SimpleRouteBuilder();
         CoordinateSetBuilderFactory coordinateSetBuilderFactory = new SimpleCoordinateSetBuilderFactory();
         userInterface.setNumOfUpdates( 100 );
@@ -118,30 +125,39 @@ public class Controller {
                 Coordinate from = pair.b;
                 Coordinate to = pair.c;
                 TimeLogger.log( TimeLogger.Event.NODE_SEARCHING, TimeLogger.Command.START );
-                Map<Integer, Float> fromMap = nodeSearcher.findClosestNodes( nsbFactory, from.getLatitude(), from.getLongitude(), NodeSearcher.SearchFor.SOURCE );
-                Map<Integer, Float> toMap = nodeSearcher.findClosestNodes( nsbFactory, to.getLatitude(), to.getLongitude(), NodeSearcher.SearchFor.TARGET );
-                TimeLogger.log( TimeLogger.Event.NODE_SEARCHING, TimeLogger.Command.STOP );
-                Route route = routingAlgorithm.route( routeBuilder, fromMap, toMap );
-                // print route
+                Path path = null;
+                try {
+                    NodeSet nodeSet = nodeSearcher.findClosestNodes( nsbFactory, from, to );
+                    TimeLogger.log( TimeLogger.Event.NODE_SEARCHING, TimeLogger.Command.STOP );
+                    Route route = routingAlgorithm.route( routeBuilder,
+                            nodeSet.getMap( graph, NodeSet.NodeCategory.SOURCE ),
+                            nodeSet.getMap( graph, NodeSet.NodeCategory.TARGET ) );
+                    // print route
 //                System.out.println( "ROUTE" );
 //                Iterator<Pair<Long, Boolean>> it = route.getEdgeIterator();
 //                while(it.hasNext()){
 //                    System.out.println( it.next() );
 //                }
-                // end print
-                TimeLogger.log( TimeLogger.Event.PATH_LOADING, TimeLogger.Command.START );
-                pathBuilder.clear();
-                Path path = pathReader.readPath( pathBuilder, graph, route );
-                // print path
+                    // end print
+                    TimeLogger.log( TimeLogger.Event.PATH_LOADING, TimeLogger.Command.START );
+                    pathBuilder.clear();
+                    path = pathReader.readPath( pathBuilder, graph, route, from, to );
+                    // print path
 //                System.out.println( "PATH" );
 //                System.out.println( "length = " + path.getLength() );
 //                System.out.println( "time = " + path.getTime() );
 //                System.out.println( path.getCoordinates() );
-                // end print
-                TimeLogger.log( TimeLogger.Event.PATH_LOADING, TimeLogger.Command.STOP );
+                    // end print
+                    TimeLogger.log( TimeLogger.Event.PATH_LOADING, TimeLogger.Command.STOP );
+                } catch ( EvaluableOnlyException ex ) {
+                    path = pathReader.readPath( pathBuilder, graph, ex.getEdgeId(), from, to );
+                } catch ( RouteNotFoundException ex ) {
+                    Logger.getLogger( Controller.class.getName() ).log( Level.SEVERE, null, ex );
+                    throw new RuntimeException( ex );
+                }
                 if ( paths.size() <= i ) {
-                    Time time = new Time( TimeUnits.SECONDS, (long) path.getTime() );
-                    Length length = new Length( LengthUnits.METERS, (long) path.getLength() );
+                    Time time = new Time( TimeUnits.SECONDS, path.getTime().getTime() );
+                    Length length = new Length( LengthUnits.METERS, path.getLength().getLength() );
                     paths.add( new PathStats( pair.a, time, length ) );
                 }
                 if ( executions.size() <= i ) {
@@ -164,7 +180,7 @@ public class Controller {
                             StatsLogger.getValue( StatsLogger.Statistic.NODES_EXAMINED ) + last.getExaminedNodes(),
                             StatsLogger.getValue( StatsLogger.Statistic.EDGES_EXAMINED ) + last.getExaminedEdges() ) );
                 }
-//                new JxMapViewerFrame().displayPath( path );
+                new JxMapViewerFrame().displayPath( path );
                 userInterface.nextStep();
             }
         }
@@ -219,7 +235,7 @@ public class Controller {
         }
     }
 
-    private PathReader createPathReader( Input input ) {
+    private PathReader<Graph> createPathReader( Input input ) {
         switch ( input.getInputType() ) {
             case SQLITE:
                 return new SqlitePathReader( input.getProperties() );
@@ -239,8 +255,8 @@ public class Controller {
                 return new ContractionHierarchiesRoutingAlgorithm( graph, preprocessedData );
 //            case CONTRACTION_HIERARCHIES_OPTIMIZED:
 //                return new OptimizedContractionHierarchiesRoutingAlgorithm( graph, graphEntityFactory, distanceFactory, preprocessedData.b, preprocessedData.a );
-//            case CONTRACTION_HIERARCHIES_OPTIMIZED_UB:
-//                return new OptimizedContractionHierarchiesRoutingAlgorithmWithUB( graph, graphEntityFactory, distanceFactory, preprocessedData.b, preprocessedData.a );
+            case CONTRACTION_HIERARCHIES_UB:
+                return new ContractionHierarchiesUbRoutingAlgorithm( graph, preprocessedData );
             default:
                 throw new IllegalArgumentException( "Unsupported algoritghm type: " + input.getAlgorithmType().name() );
         }

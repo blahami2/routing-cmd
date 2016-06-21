@@ -12,12 +12,22 @@ import static cz.certicon.routing.data.xml.XmlCommonTags.*;
 import cz.certicon.routing.memsensitive.model.entity.DistanceType;
 import cz.certicon.routing.model.Input;
 import cz.certicon.routing.model.InputType;
+import cz.certicon.routing.model.ReferenceOutput;
+import cz.certicon.routing.model.basic.Length;
+import cz.certicon.routing.model.basic.LengthUnits;
+import cz.certicon.routing.model.basic.Pair;
+import cz.certicon.routing.model.basic.Time;
+import cz.certicon.routing.model.basic.TimeUnits;
 import cz.certicon.routing.model.basic.Trinity;
 import cz.certicon.routing.model.entity.Coordinate;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -39,12 +49,7 @@ public class XmlInputReader implements InputReader {
     @Override
     public Input read( DataSource in ) throws IOException {
         try {
-            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-            Document doc = dBuilder.parse( in.getInputStream() );
-            doc.getDocumentElement().normalize();
-            XPath xPath = XPathFactory.newInstance().newXPath();
-            ValueReader valueReader = new ValueReader( doc, xPath );
+            ValueReader valueReader = ValueReader.newInstance( in.getInputStream() );
             String root = "/" + ROOT + "/";
             String version = valueReader.getValue( root + VERSION, XPathConstants.STRING );
             InputType inputType = InputType.valueOf( valueReader.getValue( root + INPUT_TYPE, XPathConstants.STRING ) );
@@ -52,9 +57,30 @@ public class XmlInputReader implements InputReader {
             Properties properties = new Properties();
             properties.load( new FileInputStream( propertiesFilePath ) );
 
+            String referenceFilePath = valueReader.getValue( root + REFERENCE_OUTPUT, XPathConstants.STRING );
+            File referenceFile = new File( referenceFilePath );
+            ValueReader refValueReader = ValueReader.newInstance( new FileInputStream( referenceFile ) );
+            //DistanceType distanceType, Map<Integer, Pair<Time, Length>> data
+            Map<Integer, Pair<Time, Length>> refData = new HashMap<>();
+            NodeList refIds = refValueReader.getValue( "//" + DATA + "/" + OUTPUT_ENTRY + "/@" + ID, XPathConstants.NODESET );
+            NodeList refTimes = refValueReader.getValue( "//" + DATA + "/" + OUTPUT_ENTRY + "/@" + TIME, XPathConstants.NODESET );
+            NodeList refLengths = refValueReader.getValue( "//" + DATA + "/" + OUTPUT_ENTRY + "/@" + LENGTH, XPathConstants.NODESET );
+            for ( int i = 0; i < refIds.getLength(); i++ ) {
+                int id = Integer.parseInt( refIds.item( i ).getNodeValue() );
+                int time = Integer.parseInt( refTimes.item( i ).getNodeValue() );
+                int length = Integer.parseInt( refLengths.item( i ).getNodeValue() );
+                refData.put( id, new Pair<>( new Time( TimeUnits.SECONDS, time ), new Length( LengthUnits.METERS, length ) ) ); // todo read unit???
+            }
+            ReferenceOutput ref = new ReferenceOutput(
+                    DistanceType.valueOf( refValueReader.getValue( root + PRIORITY, XPathConstants.STRING ) ),
+                    refData );
+
             int runs = valueReader.<Double>getValue( root + RUNS, XPathConstants.NUMBER ).intValue();
             AlgorithmType algorithmType = AlgorithmType.valueOf( valueReader.getValue( root + ALGORITHM, XPathConstants.STRING ) );
             DistanceType distanceType = DistanceType.valueOf( valueReader.getValue( root + PRIORITY, XPathConstants.STRING ) );
+            if ( !distanceType.equals( ref.getDistanceType() ) ) {
+                throw new IOException( "Invalid input: distance types for input and reference output do not match: input -> " + distanceType.name() + ", refoutput -> " + ref.getDistanceType().name() );
+            }
             NodeList ids = valueReader.getValue( "//" + DATA + "/" + INPUT_ENTRY + "/@" + ID, XPathConstants.NODESET );
             NodeList fromLatitudes = valueReader.getValue( "//" + FROM + "/@" + LATITUDE, XPathConstants.NODESET );
             NodeList fromLongitudes = valueReader.getValue( "//" + FROM + "/@" + LONGITUDE, XPathConstants.NODESET );
@@ -76,7 +102,7 @@ public class XmlInputReader implements InputReader {
                         new Coordinate( toLatitude, toLongitude )
                 ) );
             }
-            return new Input( runs, version, inputType, properties, algorithmType, distanceType, data );
+            return new Input( runs, version, inputType, properties, algorithmType, distanceType, ref, data );
         } catch ( ParserConfigurationException | SAXException | XPathExpressionException | IllegalArgumentException ex ) {
             throw new IOException( ex );
         }
@@ -86,6 +112,16 @@ public class XmlInputReader implements InputReader {
 
         private final Document document;
         private final XPath xPath;
+
+        public static ValueReader newInstance( InputStream in ) throws ParserConfigurationException, SAXException, IOException {
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+            Document doc = dBuilder.parse( in );
+            doc.getDocumentElement().normalize();
+            XPath xPath = XPathFactory.newInstance().newXPath();
+            ValueReader valueReader = new ValueReader( doc, xPath );
+            return valueReader;
+        }
 
         public ValueReader( Document document, XPath xPath ) {
             this.document = document;

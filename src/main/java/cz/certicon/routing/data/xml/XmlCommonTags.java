@@ -16,6 +16,7 @@ public interface XmlCommonTags {
     public static final String VERSION = "version";
     public static final String INPUT_TYPE = "input_type";
     public static final String INPUT_PROPERTIES = "input_properties";
+    public static final String REFERENCE_OUTPUT = "reference_output";
     public static final String ALGORITHM = "algorithm";
     public static final String PRIORITY = "priority";
     public static final String AVERAGE = "average";
