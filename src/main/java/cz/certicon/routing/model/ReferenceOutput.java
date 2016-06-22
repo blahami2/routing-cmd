@@ -46,11 +46,17 @@ public class ReferenceOutput {
         for ( int i = 0; i < paths.size(); i++ ) {
             PathStats path = paths.get( i );
             Pair<Time, Length> ref = data.get( path.getId() );
-            int timeAcc = (int) ( ( 100 * ref.a.getTime( TIME_UNITS ) ) / path.getTime().getTime( TIME_UNITS ) );
-            int lengthAcc = (int) ( ( 100 * ref.b.getLength( LENGTH_UNITS ) ) / path.getLength().getLength( LENGTH_UNITS ) );
+            int timeAcc = calculateRatio( ref.a.getTime( TIME_UNITS ), path.getTime().getTime( TIME_UNITS ) );
+            int lengthAcc = calculateRatio( ref.b.getLength( LENGTH_UNITS ), path.getLength().getLength( LENGTH_UNITS ) );
             accuracyMap.put( path.getId(), new AccuracyPair( timeAcc, lengthAcc ) );
         }
         return accuracyMap;
+    }
+
+    private static int calculateRatio( long a, long b ) {
+        long top = ( a > b ) ? b : a;
+        long bottom = ( a > b ) ? a : b;
+        return (int) ( ( 100 * top ) / bottom );
     }
 
     public static class AccuracyPair {
