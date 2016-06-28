@@ -16,6 +16,9 @@ import cz.certicon.routing.memsensitive.algorithm.algorithms.ContractionHierarch
 import cz.certicon.routing.memsensitive.algorithm.algorithms.ContractionHierarchiesUbRoutingAlgorithm;
 import cz.certicon.routing.memsensitive.algorithm.algorithms.DijkstraRoutingAlgorithm;
 import cz.certicon.routing.memsensitive.algorithm.common.SimpleRouteBuilder;
+import cz.certicon.routing.memsensitive.algorithm.preprocessing.ch.ContractionHierarchiesPreprocessor;
+import cz.certicon.routing.memsensitive.algorithm.preprocessing.ch.calculators.SpatialHeuristicEdgeDifferenceCalculator;
+import cz.certicon.routing.memsensitive.algorithm.preprocessing.ch.strategies.NeighboursOnlyRecalculationStrategy;
 import cz.certicon.routing.memsensitive.data.ch.ContractionHierarchiesDataRW;
 import cz.certicon.routing.memsensitive.data.ch.NotPreprocessedException;
 import cz.certicon.routing.memsensitive.data.ch.sqlite.SqliteContractionHierarchiesRW;
@@ -26,16 +29,20 @@ import cz.certicon.routing.memsensitive.data.nodesearch.NodeSearcher;
 import cz.certicon.routing.memsensitive.data.nodesearch.sqlite.SqliteNodeSearcher;
 import cz.certicon.routing.memsensitive.data.path.PathReader;
 import cz.certicon.routing.memsensitive.data.path.sqlite.SqlitePathReader;
+import cz.certicon.routing.memsensitive.data.turntables.TurnTablesReader;
+import cz.certicon.routing.memsensitive.data.turntables.sqlite.SqliteTurnTablesReader;
 import cz.certicon.routing.memsensitive.model.entity.Graph;
 import cz.certicon.routing.memsensitive.model.entity.NodeSet;
 import cz.certicon.routing.memsensitive.model.entity.Path;
 import cz.certicon.routing.memsensitive.model.entity.PathBuilder;
 import cz.certicon.routing.memsensitive.model.entity.ch.PreprocessedData;
+import cz.certicon.routing.memsensitive.model.entity.ch.SimpleChDataBuilder;
 import cz.certicon.routing.memsensitive.model.entity.ch.SimpleChDataFactory;
 import cz.certicon.routing.memsensitive.model.entity.common.SimpleCoordinateSetBuilderFactory;
 import cz.certicon.routing.memsensitive.model.entity.common.SimpleGraphBuilderFactory;
 import cz.certicon.routing.memsensitive.model.entity.common.SimpleNodeSetBuilderFactory;
 import cz.certicon.routing.memsensitive.model.entity.common.SimplePathBuilder;
+import cz.certicon.routing.memsensitive.model.entity.common.SimpleTurnTablesBuilder;
 import cz.certicon.routing.memsensitive.presentation.jxmapviewer.JxMapViewerFrame;
 import cz.certicon.routing.model.ExecutionStats;
 import cz.certicon.routing.model.Input;
@@ -78,7 +85,7 @@ public class Controller {
                 userInterface.statusUpdate( StatusEvent.START_DISPLAYING_RESULT );
                 userInterface.displayResult( input, result );
                 userInterface.statusUpdate( StatusEvent.COMPLETED_DISPLAYING_RESULT );
-            } catch ( IOException | NotPreprocessedException ex ) {
+            } catch ( IOException ex ) {
                 userInterface.report( ex );
             }
         } );
@@ -88,8 +95,15 @@ public class Controller {
         userInterface.run( args );
     }
 
-    private Result execute( Input input ) throws IOException, NotPreprocessedException {
-
+    private Result execute( Input input ) throws IOException {
+        try {
+            Thread.sleep( 3000);
+        } catch ( InterruptedException ex ) {
+            Logger.getLogger( Controller.class.getName() ).log( Level.SEVERE, null, ex );
+        }
+        GlobalOptions.DEBUG_DISPLAY = true;
+        GlobalOptions.DEBUG_DISPLAY_PAUSE = 250;
+        GlobalOptions.DEBUG_DISPLAY_PROPERTIES = input.getProperties();
         userInterface.statusUpdate( StatusEvent.START_LOADING_GRAPH );
         Graph graph = loadGraph( input );
         userInterface.statusUpdate( StatusEvent.COMPLETED_LOADING_GRAPH );
@@ -153,7 +167,21 @@ public class Controller {
                     path = pathReader.readPath( pathBuilder, graph, ex.getEdgeId(), from, to );
                 } catch ( RouteNotFoundException ex ) {
                     Logger.getLogger( Controller.class.getName() ).log( Level.SEVERE, null, ex );
-                    throw new RuntimeException( ex );
+//                    throw new RuntimeException( ex );
+                    if ( paths.size() <= i ) {
+                        paths.add( new PathStats( pair.a, new Time( TimeUnits.SECONDS, 1 ), new Length( LengthUnits.METERS, 1 ) ) );
+                    }
+                    if ( executions.size() <= i ) {
+                        executions.add( new ExecutionStats(
+                                pair.a,
+                                TimeLogger.getTimeMeasurement( TimeLogger.Event.NODE_SEARCHING ).getTime(),
+                                TimeLogger.getTimeMeasurement( TimeLogger.Event.ROUTING ).getTime(),
+                                TimeLogger.getTimeMeasurement( TimeLogger.Event.ROUTE_BUILDING ).getTime(),
+                                TimeLogger.getTimeMeasurement( TimeLogger.Event.PATH_LOADING ).getTime(),
+                                StatsLogger.getValue( StatsLogger.Statistic.NODES_EXAMINED ),
+                                StatsLogger.getValue( StatsLogger.Statistic.EDGES_EXAMINED ) ) );
+                    }
+                    continue;
                 }
                 if ( paths.size() <= i ) {
                     Time time = new Time( TimeUnits.SECONDS, path.getTime().getTime() );
@@ -203,18 +231,25 @@ public class Controller {
 
     private Graph loadGraph( Input input ) throws IOException {
         GraphReader graphReader;
+        TurnTablesReader ttReader;
         switch ( input.getInputType() ) {
             case SQLITE:
                 graphReader = new SqliteGraphReader( input.getProperties() );
+                ttReader = new SqliteTurnTablesReader( input.getProperties() );
                 break;
             default:
                 throw new IllegalArgumentException( "Unsupported input type: " + input.getInputType().name() );
         }
-        return graphReader.readGraph( new SimpleGraphBuilderFactory( input.getDistanceType() ), input.getDistanceType() );
+        Graph graph = graphReader.readGraph( new SimpleGraphBuilderFactory( input.getDistanceType() ), input.getDistanceType() );
+        SimpleTurnTablesBuilder.TurnTablesContainer read = ttReader.read( graph, new SimpleTurnTablesBuilder() );
+        graph.setTurnRestrictions( read.getTr() );
+        return graph;
     }
 
-    private PreprocessedData loadPreprocessedData( Input input, Graph graph ) throws IOException, NotPreprocessedException {
+    private PreprocessedData loadPreprocessedData( Input input, Graph graph ) throws IOException {
         ContractionHierarchiesDataRW dataRw;
+        ContractionHierarchiesPreprocessor preprocessor = new ContractionHierarchiesPreprocessor( new NeighboursOnlyRecalculationStrategy() );
+        preprocessor.setEdgeDifferenceCalculator( new SpatialHeuristicEdgeDifferenceCalculator( graph.getNodeCount() ) );
         switch ( input.getInputType() ) {
 
             case SQLITE:
@@ -223,7 +258,7 @@ public class Controller {
             default:
                 throw new IllegalArgumentException( "Unsupported input type: " + input.getInputType().name() );
         }
-        return dataRw.read( new SimpleChDataFactory( graph, input.getDistanceType() ) );
+        return dataRw.read( new SimpleChDataFactory( graph, input.getDistanceType() ), graph, preprocessor );
     }
 
     private NodeSearcher createNodeSearcher( Input input ) throws IOException {
